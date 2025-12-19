@@ -1,0 +1,180 @@
+=================================
+VIP TELEPORT MOD - By SOSH79
+=================================
+
+[h1]OVERVIEW[/h1]
+VIP Teleport mod that allows authorized VIP players to teleport to predefined locations using a simple and intuitive menu interface. The mod features Steam ID whitelist verification, customizable locations, and a user-friendly UI with double-click teleportation.
+
+[h1]KEY FEATURES[/h1]
+[list]
+[*] [b]Steam ID Whitelist[/b] - Only authorized players can access the teleport menu
+[*] [b]Custom Keybind[/b] - Default F5 key (customizable in-game controls)
+[*] [b]Simple Interface[/b] - Clean menu with location list and descriptions
+[*] [b]Double-Click Teleport[/b] - Quick teleportation with double-click on any location
+[*] [b]JSON Configuration[/b] - Easy to configure locations and settings
+[*] [b]Smart Camera Control[/b] - Camera freezes while menu is open, automatically restores on close
+[*] [b]Automatic Config Generation[/b] - Creates default configuration on first run
+[*] [b]Version Control[/b] - Automatic config backup when version mismatch detected
+[*] [b]No Vehicle Teleport[/b] - Prevents teleporting while in vehicles for balance
+[/list]
+
+[h1]INSTALLATION[/h1]
+[h2]Server Installation:[/h2]
+[olist]
+[*] Download the mod from Steam Workshop or install manually
+[*] Add the mod to your server's launch parameters: [code]-mod=@VIPTeleport[/code]
+[*] Start your server - the mod will automatically create the configuration file
+[*] Navigate to: [code]DayZServer\Profiles\SOSH79\VIPTeleport\[/code]
+[*] Edit [b]VIPTeleportLocations.json[/b] to configure your settings
+[*] Restart the server to apply changes
+[/olist]
+
+[h2]Client Installation:[/h2]
+[olist]
+[*] Subscribe to the mod on Steam Workshop
+[*] The mod will automatically download
+[*] Make sure your server has the mod enabled
+[*] Join the server and press F5 to open the menu (if you're whitelisted)
+[/olist]
+
+[h1]CONFIGURATION[/h1]
+The mod uses a JSON configuration file located at:
+[code]DayZServer\Profiles\SOSH79\VIPTeleport\VIPTeleportLocations.json[/code]
+
+[h2]Configuration Structure:[/h2]
+[code]
+{
+    "CONFIG_VERSION": "1.0.0",
+    "MenuTitle": "VIP Teleport Menu",
+    "AllowedSteamIDs": [
+        "76561198000000000",
+        "76561198111111111"
+    ],
+    "TeleportLocations": [
+        {
+            "Name": "Balota Airfield",
+            "Position": [4525.0, 0.0, 2443.0],
+            "Description": "Military airfield in the south-west"
+        },
+        {
+            "Name": "NWAF - Northwest Airfield",
+            "Position": [4814.0, 0.0, 10316.0],
+            "Description": "Large military airfield in the north"
+        }
+    ]
+}
+[/code]
+
+[h2]Configuration Fields Explained:[/h2]
+
+[b]CONFIG_VERSION[/b]
+- Current configuration version
+- Used for automatic backup when config structure changes
+- Do not modify this unless you know what you're doing
+
+[b]MenuTitle[/b]
+- The title displayed at the top of the teleport menu
+- Can be customized to match your server theme
+- Example: "VIP Teleport", "Admin Teleport", "Donor Menu"
+
+[b]AllowedSteamIDs[/b]
+- Array of Steam64 IDs that are authorized to use the teleport
+- To find your Steam64 ID, visit: https://steamid.io/
+- Add or remove IDs as needed
+- Format: String, always in quotes
+- Example: "76561198012345678"
+
+[b]TeleportLocations[/b]
+- Array of teleport destinations
+- Each location has three properties:
+
+[b]Name[/b] (string)
+- The name displayed in the menu
+- Keep it short and descriptive
+- Example: "Balota Airfield", "Trader Zone", "Military Base"
+
+[b]Position[/b] (array of 3 floats: [X, Y, Z])
+- X: East-West coordinate
+- Y: Height/Elevation (set to 0.0 for automatic ground height detection)
+- Z: North-South coordinate
+- To get coordinates in-game:
+  1. Stand at the desired location
+  2. Use VPP Or anything else
+
+[b]Description[/b] (string)
+- Additional information about the location
+- Displayed when a location is selected
+- Can include warnings, tips, or location details
+- Example: "Safe zone - No PvP allowed", "High loot area", "Trader post"
+
+[h1]USAGE[/h1]
+[olist]
+[*] Press [b]F5[/b] (or your custom keybind) to open the VIP Teleport menu
+[*] [b]Single-click[/b] on a location to view its description
+[*] [b]Double-click[/b] on a location to teleport instantly
+[*] Press [b]ESC[/b] to close the menu
+[/olist]
+
+[h1]ADDING NEW LOCATIONS[/h1]
+To add a new teleport location:
+[olist]
+[*] Open the JSON config file
+[*] Locate the "TeleportLocations" array
+[*] Add a new location entry following this template:
+[code]
+{
+    "Name": "Your Location Name",
+    "Position": [X, 0.0, Z],
+    "Description": "Description of the location"
+}
+[/code]
+[*] Make sure to add a comma after the previous location entry
+[*] Save the file
+[*] Restart your server
+[/olist]
+
+[h2]Example - Adding Green Mountain:[/h2]
+[code]
+"TeleportLocations": [
+    {
+        "Name": "Balota Airfield",
+        "Position": [4525.0, 0.0, 2443.0],
+        "Description": "Military airfield in the south-west"
+    },
+    {
+        "Name": "Green Mountain",
+        "Position": [3700.0, 0.0, 6000.0],
+        "Description": "Radio tower on top of the mountain"
+    }
+]
+[/code]
+
+[h1]PERMISSIONS[/h1]
+This mod is provided as-is for DayZ server administrators and players.
+- You may modify for personal use
+- You may use on your servers
+- Please credit SOSH79 if redistributing modifications
+
+[h1]SUPPORT & UPDATES[/h1]
+For support, bug reports, or feature requests:
+- Comment on this Workshop page
+- Check for updates regularly
+- Report issues with detailed logs
+
+[h1]CHANGELOG[/h1]
+[b]Version 1.0.0[/b]
+- Initial release
+- Steam ID whitelist system
+- JSON configuration
+- Custom keybind support (F5 default)
+- Double-click teleportation
+- Camera freeze during menu
+- Automatic config generation
+- Version control with backup
+- Vehicle teleport prevention
+
+[h1]CREDITS[/h1]
+Developed by: SOSH79
+For the DayZ community
+
+Enjoy your VIP Teleport experience!

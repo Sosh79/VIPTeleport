@@ -1,0 +1,44 @@
+{
+	"CONFIG_VERSION": "1.0.0",
+	"MenuTitle": "VIP Teleport Menu",
+	"AllowedSteamIDs": [
+		"76561198361293910"
+	],
+	"TeleportLocations": [
+		{
+			"Name": "Balota Airfield",
+			"Position": [4525, 0, 2443],
+			"Description": "Military airfield in the south-west"
+		},
+		{
+			"Name": "NWAF - Northwest Airfield",
+			"Position": [4814, 0, 10316],
+			"Description": "Large military airfield in the north"
+		},
+		{
+			"Name": "Elektrozavodsk",
+			"Position": [10084, 0, 2141],
+			"Description": "Coastal city in the south"
+		},
+		{
+			"Name": "Cherno",
+			"Position": [6659, 0, 2596],
+			"Description": "Major coastal city"
+		},
+		{
+			"Name": "Berezino",
+			"Position": [12782, 0, 9712],
+			"Description": "Eastern coastal city"
+		},
+		{
+			"Name": "Tisy Military Base",
+			"Position": [1423, 0, 14053],
+			"Description": "Northern military base"
+		},
+		{
+			"Name": "Green Mountain",
+			"Position": [3686, 0, 5984],
+			"Description": "Radio tower on the mountain"
+		}
+	]
+}

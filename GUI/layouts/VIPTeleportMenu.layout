@@ -1,0 +1,99 @@
+FrameWidgetClass VIPTeleportMenuRoot {
+ color 0 0 0 0
+ position 0 0
+ size 1 1
+ halign center_ref
+ valign center_ref
+ hexactpos 0
+ vexactpos 0
+ hexactsize 0
+ vexactsize 0
+ {
+  PanelWidgetClass Background {
+   visible 1
+   ignorepointer 0
+   color 0 0 0 0.7
+   position 0 0
+   size 1 1
+   halign center_ref
+   valign center_ref
+   hexactpos 0
+   vexactpos 0
+   hexactsize 0
+   vexactsize 0
+   {
+    PanelWidgetClass Content {
+     visible 1
+     color 0.09 0.11 0.13 0.95
+     position 0 0
+     size 0.5 0.6
+     halign center_ref
+     valign center_ref
+     hexactpos 0
+     vexactpos 0
+     hexactsize 0
+     vexactsize 0
+     style rover_sim_black
+     {
+      TextWidgetClass Title {
+       visible 1
+       position 0 0.02
+       size 1 0.08
+       style Normal
+       text "VIP Teleport Menu"
+       font "gui/fonts/Metron28"
+       "text halign" center
+       "text valign" center
+      }
+      PanelWidgetClass LocationListPanel {
+       visible 1
+       position 0.05 0.15
+       size 0.9 0.58442
+       hexactpos 0
+       vexactpos 0
+       hexactsize 0
+       vexactsize 0
+       {
+        TextListboxWidgetClass LocationList {
+         visible 1
+         position 0 0
+         size 1 1
+         hexactpos 0
+         vexactpos 0
+         hexactsize 0
+         vexactsize 0
+         style Default
+         font "gui/fonts/Metron16"
+        }
+       }
+      }
+      PanelWidgetClass DescriptionPanel {
+       visible 1
+       position 0.04559 0.80593
+       size 0.9 0.10573
+       hexactpos 0
+       vexactpos 0
+       hexactsize 0
+       vexactsize 0
+       {
+        MultilineTextWidgetClass Description {
+         visible 1
+         position 0.0208 0.0783
+         size 0.9789 0.8028
+         hexactpos 0
+         vexactpos 0
+         hexactsize 0
+         vexactsize 0
+         style DayZNormal
+         text "Select a location to teleport"
+         "text halign" left
+         "text valign" top
+        }
+       }
+      }
+     }
+    }
+   }
+  }
+ }
+}

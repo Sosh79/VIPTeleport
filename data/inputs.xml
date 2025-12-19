@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<modded_inputs>
+	<inputs>
+		<actions>
+			<input name="UAVIPTeleportMenu" loc="Open VIP Teleport Menu"/>
+		</actions>
+		<sorting name="VIP Teleport" loc="VIP Teleport">
+			<input name="UAVIPTeleportMenu"/>
+		</sorting>
+	</inputs>
+	<preset>
+		<input name="UAVIPTeleportMenu">
+			<btn name="kF5"/>
+		</input>
+	</preset>
+</modded_inputs>
