@@ -3,14 +3,19 @@
 	<inputs>
 		<actions>
 			<input name="UAVIPTeleportMenu" loc="Open VIP Teleport Menu"/>
+			<input name="UAVIPTeleportAdminMenu" loc="Admin panel (admins only)"/>
 		</actions>
-		<sorting name="VIP Teleport" loc="VIP Teleport">
+		<sorting name="SOSH79" loc="SOSH79">
 			<input name="UAVIPTeleportMenu"/>
+			<input name="UAVIPTeleportAdminMenu"/>
 		</sorting>
 	</inputs>
 	<preset>
 		<input name="UAVIPTeleportMenu">
-			<btn name="kF5"/>
+			<btn name=""/>
+		</input>
+		<input name="UAVIPTeleportAdminMenu">
+			<btn name=""/>
 		</input>
 	</preset>
 </modded_inputs>

@@ -28,6 +28,11 @@ class CfgMods
 
         class defs
         {
+            class gameLibScriptModule
+            {
+                value = "";
+                files[] = {"VIPTeleport/scripts/common"};
+            };
             class gameScriptModule
             {
                 value = "";

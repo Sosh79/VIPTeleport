@@ -12,7 +12,7 @@ FrameWidgetClass VIPTeleportMenuRoot {
   PanelWidgetClass Background {
    visible 1
    ignorepointer 0
-   color 0 0 0 0.7
+   color 0 0 0 0.702
    position 0 0
    size 1 1
    halign center_ref
@@ -21,56 +21,72 @@ FrameWidgetClass VIPTeleportMenuRoot {
    vexactpos 0
    hexactsize 0
    vexactsize 0
+   style blank
    {
     PanelWidgetClass Content {
      visible 1
-     color 0.09 0.11 0.13 0.95
-     position 0 0
-     size 0.5 0.6
-     halign center_ref
-     valign center_ref
+     clipchildren 1
+     inheritalpha 0
+     ignorepointer 0
+     ignoregloballv 0
+     keepsafezone 0
+     color 0 0 0 0.4745
+     size 0.25228 0.7917
+     halign right_ref
      hexactpos 0
      vexactpos 0
      hexactsize 0
      vexactsize 0
-     style rover_sim_black
+     scaled 1
+     draggable 0
+     style ToolbarWidget
+     "no focus" 0
      {
       TextWidgetClass Title {
        visible 1
-       position 0 0.02
-       size 1 0.08
+       position -0.00033 0.02282
+       size 1.02402 0.0712
        style Normal
        text "VIP Teleport Menu"
-       font "gui/fonts/Metron28"
+       font "gui/fonts/etelkatextpro16"
        "text halign" center
        "text valign" center
       }
       PanelWidgetClass LocationListPanel {
        visible 1
-       position 0.05 0.15
-       size 0.9 0.58442
+       position 0.05 0.11409
+       size 0.9 0.75355
        hexactpos 0
        vexactpos 0
        hexactsize 0
        vexactsize 0
+       style blank
        {
         TextListboxWidgetClass LocationList {
          visible 1
+         inheritalpha 0
+         color 0 0 0 0.2745
          position 0 0
          size 1 1
          hexactpos 0
          vexactpos 0
          hexactsize 0
          vexactsize 0
-         style Default
-         font "gui/fonts/Metron16"
+         scaled 1
+         draggable 0
+         style Editor
+         "no focus" 0
+         "next left" ""
+         "title visible" 0
+         colums ""
+         font "gui/fonts/metron16"
         }
        }
       }
       PanelWidgetClass DescriptionPanel {
        visible 1
-       position 0.04559 0.80593
-       size 0.9 0.10573
+       position 0.04578 0.88885
+       size 0.89838 0.07735
        hexactpos 0
        vexactpos 0
        hexactsize 0
@@ -84,8 +100,9 @@ FrameWidgetClass VIPTeleportMenuRoot {
          vexactpos 0
          hexactsize 0
          vexactsize 0
-         style DayZNormal
+         style DayZBold
          text "Select a location to teleport"
+         font "gui/fonts/etelkatextpro58"
          "text halign" left
          "text valign" top
         }
