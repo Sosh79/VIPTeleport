@@ -53,6 +53,11 @@ class VIPTeleportConfig
     static void LoadConfig()
     {
         Print("[VIPTeleport] Loading configuration...");
+// Initialize logging on server and load configs
+#ifdef SERVER
+        VIPTeleportLogger.InitLogFile();
+        VIPTeleportLogger.Log("[Init] VIPTeleport LoadConfig called");
+#endif
         LoadAdminConfig();
         LoadMenuConfig();
     }

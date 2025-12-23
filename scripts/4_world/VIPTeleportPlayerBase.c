@@ -226,6 +226,9 @@ modded class PlayerBase
         rpc.Send(this, RPC_VIP_TELEPORT_OPEN_MENU, true, sender);
 
         Print("[VIPTeleport] Sent menu '" + menuTitle + "' to player: " + sender.GetName());
+#ifdef SERVER
+        VIPTeleportLogger.Log("[Menu] Player " + sender.GetName() + " opened VIPTeleport menu.");
+#endif
     }
 
     void OnRPCMenuReceive(ParamsReadContext ctx)
@@ -346,12 +349,18 @@ modded class PlayerBase
                 vehicle.SetPosition(targetPos);
                 Print("[VIPTeleport] Player " + sender.GetName() + " teleported with vehicle to " + location.Name);
                 SendTeleportResponse(sender, true, "Teleported to " + location.Name + " with vehicle");
+#ifdef SERVER
+                VIPTeleportLogger.Log("[Teleport] Player '" + sender.GetName() + "' (" + sender.GetPlainId() + ") teleported WITH VEHICLE to '" + location.Name + "' at position " + targetPos.ToString());
+#endif
             }
             else
             {
                 // Vehicle teleport not allowed for this location
                 SendTeleportResponse(sender, false, "Vehicle teleport is not allowed for this location");
                 Print("[VIPTeleport] Player " + sender.GetName() + " tried to teleport with vehicle to " + location.Name + " but it's disabled for this location");
+#ifdef SERVER
+                VIPTeleportLogger.Log("[Teleport] DENIED - Player '" + sender.GetName() + "' (" + sender.GetPlainId() + ") tried to teleport with vehicle to '" + location.Name + "' but vehicle teleport is disabled");
+#endif
             }
         }
         else
@@ -360,6 +369,9 @@ modded class PlayerBase
             SetPosition(targetPos);
             Print("[VIPTeleport] Player " + sender.GetName() + " teleported to " + location.Name);
             SendTeleportResponse(sender, true, "Teleported to " + location.Name);
+#ifdef SERVER
+            VIPTeleportLogger.Log("[Teleport] Player '" + sender.GetName() + "' (" + sender.GetPlainId() + ") teleported to '" + location.Name + "' at position " + targetPos.ToString());
+#endif
         }
     }
 
