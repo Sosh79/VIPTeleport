@@ -203,22 +203,15 @@ modded class MissionGameplay
 
     void CloseAdminMenu()
     {
-        Print("[VIPTeleport] CloseAdminMenu called");
 
         // Restore camera control before closing
         GetGame().GetInput().ChangeGameFocus(-1);
         GetGame().GetUIManager().ShowUICursor(false);
-        Print("[VIPTeleport] Camera control restored in CloseAdminMenu");
 
         if (m_VIPTeleportAdminMenu)
         {
-            Print("[VIPTeleport] Closing admin menu via Close()");
             m_VIPTeleportAdminMenu.Close();
             m_VIPTeleportAdminMenu = null;
-        }
-        else
-        {
-            Print("[VIPTeleport] Admin menu is already null");
         }
         m_AdminMenuIsOpen = false;
     }

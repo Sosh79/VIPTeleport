@@ -158,22 +158,9 @@ class VIPTeleportConfig
     {
         Print("[VIPTeleport] Loading configuration...");
 
-        // Create directory structure if it doesn't exist
-        if (!FileExist("$profile:" + MOD_AUTHOR))
-        {
-            MakeDirectory("$profile:" + MOD_AUTHOR);
-            Print("[VIPTeleport] Created directory: " + MOD_AUTHOR);
-        }
-
-        if (!FileExist(CONFIG_FOLDER))
-        {
-            MakeDirectory(CONFIG_FOLDER);
-            Print("[VIPTeleport] Created directory: VIPTeleport");
-        }
-
-        // Check if config file exists
         if (FileExist(CONFIG_PATH))
         {
+            
             // Load existing config
             VIPTeleportConfigData configData = new VIPTeleportConfigData();
             JsonFileLoader<VIPTeleportConfigData>.JsonLoadFile(CONFIG_PATH, configData);
@@ -198,11 +185,10 @@ class VIPTeleportConfig
                 m_ConfigVersion = configData.CONFIG_VERSION;
                 m_Menus.Clear();
                 
-                // Load cooldown settings
+                // Load cooldown settings (convert int to bool if needed)
                 m_CooldownSeconds = configData.CooldownSeconds;
                 m_MaxTeleportsPerHour = configData.MaxTeleportsPerHour;
-                m_EnableCooldown = configData.EnableCooldown;
-                Print("[VIPTeleport] Cooldown settings loaded - Cooldown: " + m_CooldownSeconds + "s, Max/hour: " + m_MaxTeleportsPerHour + ", Enabled: " + m_EnableCooldown);
+                m_EnableCooldown = (configData.EnableCooldown != 0);
 
                 foreach (VIPTeleportMenuData menuData : configData.Menus)
                 {
@@ -245,7 +231,7 @@ class VIPTeleportConfig
         // Set default cooldown settings
         defaultConfig.CooldownSeconds = 45;
         defaultConfig.MaxTeleportsPerHour = 15;
-        defaultConfig.EnableCooldown = true;
+        defaultConfig.EnableCooldown = 1;
         
         defaultConfig.Menus = new array<ref VIPTeleportMenuData>;
 
@@ -513,6 +499,48 @@ class VIPTeleportConfig
 
         Print("[VIPTeleport] Created default restricted zones config");
     }
+
+    static void SaveConfig()
+    {
+        Print("[VIPTeleport] Saving configuration...");
+
+        VIPTeleportConfigData configData = new VIPTeleportConfigData();
+        configData.CONFIG_VERSION = CURRENT_VERSION;
+        configData.CooldownSeconds = m_CooldownSeconds;
+        configData.MaxTeleportsPerHour = m_MaxTeleportsPerHour;
+        configData.EnableCooldown = 0;
+        if (m_EnableCooldown) configData.EnableCooldown = 1;
+        
+        configData.Menus = new array<ref VIPTeleportMenuData>;
+
+        foreach (VIPTeleportMenuConfig menu : m_Menus)
+        {
+            VIPTeleportMenuData menuData = new VIPTeleportMenuData();
+            menuData.MenuTitle = menu.MenuTitle;
+            menuData.IsPublic = menu.IsPublic;
+            menuData.Enabled = menu.Enabled;
+            menuData.AllowVehicleTeleport = menu.AllowVehicleTeleport;
+            menuData.AllowedSteamIDs = menu.AllowedSteamIDs;
+            menuData.TeleportLocations = new array<ref VIPTeleportLocationData>;
+
+            foreach (VIPTeleportLocation loc : menu.TeleportLocations)
+            {
+                VIPTeleportLocationData locData = new VIPTeleportLocationData();
+                locData.Name = loc.Name;
+                locData.Description = loc.Description;
+                locData.Position = new array<float>;
+                locData.Position.Insert(loc.Position[0]);
+                locData.Position.Insert(loc.Position[1]);
+                locData.Position.Insert(loc.Position[2]);
+                menuData.TeleportLocations.Insert(locData);
+            }
+
+            configData.Menus.Insert(menuData);
+        }
+
+        JsonFileLoader<VIPTeleportConfigData>.JsonSaveFile(CONFIG_PATH, configData);
+        Print("[VIPTeleport] Configuration saved successfully");
+    }
 }
 
 // Helper classes for JSON serialization
@@ -554,7 +582,7 @@ class VIPTeleportConfigData
     // Cooldown settings (will appear right after CONFIG_VERSION in JSON)
     int CooldownSeconds = 30;
     int MaxTeleportsPerHour = 20;
-    bool EnableCooldown = true;
+    int EnableCooldown = 1; // Use int for better JSON compatibility
     
     // Menus array (will appear after cooldown settings)
     ref array<ref VIPTeleportMenuData> Menus;

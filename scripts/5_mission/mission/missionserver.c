@@ -6,7 +6,5 @@ modded class MissionServer
 
         // Load VIP Teleport configuration
         VIPTeleportConfig.LoadConfig();
-
-        Print("[VIPTeleport] Server initialized");
     }
 }

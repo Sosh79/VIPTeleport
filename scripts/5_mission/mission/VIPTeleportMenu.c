@@ -256,7 +256,6 @@ class VIPTeleportMenu : UIScriptedMenu
 
         if (w == m_LocationList && m_SelectedIndex >= 0)
         {
-            Print("[VIPTeleport] Double-click on location list");
             OnTeleportClicked();
             return true;
         }

@@ -58,6 +58,7 @@ FrameWidgetClass VIPTeleportDialogRoot {
          size 1 1
          text "VIP TELEPORT"
          font "gui/fonts/metron-bold22"
+         "exact text" 0
          "text halign" center
          "text valign" center
         }
@@ -88,6 +89,8 @@ FrameWidgetClass VIPTeleportDialogRoot {
          style DayZNormal
          text "Error message goes here."
          font "gui/fonts/metron22"
+         "exact text" 0
+         "text halign" center
          "text valign" center
          wrap 0
         }

@@ -18,7 +18,6 @@ class VIPTeleportLogger
         if (m_LogFile)
         {
             Print("[VIPTeleport] Log file initialized: " + m_LogFilePath);
-            FPrintln(m_LogFile, "[" + GetTime() + "] [Init] Log file created for this session.");
             CloseFile(m_LogFile);
             m_LogFile = null;
         }

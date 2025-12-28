@@ -54,6 +54,14 @@ modded class PlayerBase
             }
             break;
         }
+        case RPC_VIP_ADMIN_UPDATE_CONFIG:
+        {
+            if (GetGame().IsServer())
+            {
+                OnRPCAdminUpdateConfigRequest(sender, ctx);
+            }
+            break;
+        }
         case RPC_VIP_ADMIN_RESPONSE:
         {
             if (GetGame().IsClient())
@@ -72,7 +80,6 @@ modded class PlayerBase
         {
             ScriptRPC rpc = new ScriptRPC();
             rpc.Send(this, RPC_VIP_ADMIN_OPEN_MENU, true, null);
-            Print("[VIPTeleport] CLIENT: Requested admin menu");
         }
     }
 
@@ -83,7 +90,19 @@ modded class PlayerBase
         {
             ScriptRPC rpc = new ScriptRPC();
             rpc.Send(this, RPC_VIP_ADMIN_RELOAD_CONFIG, true, null);
-            Print("[VIPTeleport] CLIENT: Requested config reload");
+        }
+    }
+
+    // CLIENT: Request config update
+    void UpdateAdminConfig(bool enableCooldown, int cooldownSec, int maxTele)
+    {
+        if (GetGame().IsClient())
+        {
+            ScriptRPC rpc = new ScriptRPC();
+            rpc.Write(enableCooldown);
+            rpc.Write(cooldownSec);
+            rpc.Write(maxTele);
+            rpc.Send(this, RPC_VIP_ADMIN_UPDATE_CONFIG, true, null);
         }
     }
 
@@ -96,17 +115,23 @@ modded class PlayerBase
         string steamId = sender.GetPlainId();
         if (!VIPTeleportConfig.IsAdmin(steamId))
         {
-            Print("[VIPTeleport] Non-admin attempted to open admin menu: " + steamId);
+            VIPTeleportLogger.LogDebug("Non-admin attempted to open admin menu: " + steamId);
             return;
         }
 
-        // Send confirmation to open admin menu
+        // Send confirmation to open admin menu with current configuration
         ScriptRPC rpc = new ScriptRPC();
         rpc.Write(true);
         rpc.Write("Admin menu opened");
+        
+        // Include current settings for UI synchronization
+        rpc.Write(VIPTeleportConfig.m_EnableCooldown);
+        rpc.Write(VIPTeleportConfig.m_CooldownSeconds);
+        rpc.Write(VIPTeleportConfig.m_MaxTeleportsPerHour);
+        
         rpc.Send(this, RPC_VIP_ADMIN_OPEN_MENU, true, sender);
 
-        Print("[VIPTeleport] Admin menu access granted to: " + sender.GetName());
+        VIPTeleportLogger.LogDebug("Admin menu access granted to: " + sender.GetName());
     }
 
     // CLIENT: Receive admin menu open confirmation
@@ -115,14 +140,22 @@ modded class PlayerBase
         bool success;
         string message;
 
-        if (!ctx.Read(success))
-            return;
-        if (!ctx.Read(message))
+        if (!ctx.Read(success) || !ctx.Read(message))
             return;
 
         if (success)
         {
-            Print("[VIPTeleport] CLIENT: Opening admin menu");
+            // Sync local config settings from server
+            bool enabled;
+            int seconds, maxTele;
+            
+            if (ctx.Read(enabled) && ctx.Read(seconds) && ctx.Read(maxTele))
+            {
+                VIPTeleportConfig.m_EnableCooldown = enabled;
+                VIPTeleportConfig.m_CooldownSeconds = seconds;
+                VIPTeleportConfig.m_MaxTeleportsPerHour = maxTele;
+            }
+
             VIPTeleportFunctions.RequestAdminMenuOpen();
         }
     }
@@ -136,12 +169,12 @@ modded class PlayerBase
         string steamId = sender.GetPlainId();
         if (!VIPTeleportConfig.IsAdmin(steamId))
         {
-            Print("[VIPTeleport] Non-admin attempted to reload config: " + steamId);
+            VIPTeleportLogger.LogDebug("Non-admin attempted to reload config: " + steamId);
             SendAdminResponse(sender, false, "Unauthorized");
             return;
         }
 
-        Print("[VIPTeleport] Admin reload config requested by: " + sender.GetName());
+        VIPTeleportLogger.LogDebug("Admin reload config requested by: " + sender.GetName());
         
         // Reload configuration from JSON
         VIPTeleportConfig.LoadConfig();
@@ -160,6 +193,48 @@ modded class PlayerBase
 #endif
     }
 
+    // SERVER: Handle config update request
+    void OnRPCAdminUpdateConfigRequest(PlayerIdentity sender, ParamsReadContext ctx)
+    {
+        if (!sender)
+            return;
+
+        string steamId = sender.GetPlainId();
+        if (!VIPTeleportConfig.IsAdmin(steamId))
+        {
+            VIPTeleportLogger.LogDebug("Non-admin attempted to update config: " + steamId);
+            SendAdminResponse(sender, false, "Unauthorized");
+            return;
+        }
+
+        bool enableCooldown;
+        int cooldownSec;
+        int maxTele;
+
+        if (!ctx.Read(enableCooldown) || !ctx.Read(cooldownSec) || !ctx.Read(maxTele))
+        {
+            SendAdminResponse(sender, false, "Failed to read RPC parameters");
+            return;
+        }
+
+        VIPTeleportLogger.LogDebug("Admin update config requested by: " + sender.GetName());
+        
+        // Update global settings
+        VIPTeleportConfig.m_EnableCooldown = enableCooldown;
+        VIPTeleportConfig.m_CooldownSeconds = cooldownSec;
+        VIPTeleportConfig.m_MaxTeleportsPerHour = maxTele;
+        
+        // Persist to JSON
+        VIPTeleportConfig.SaveConfig();
+
+        string successMsg = "Configuration updated and saved!";
+        SendAdminResponse(sender, true, successMsg);
+
+#ifdef SERVER
+        VIPTeleportLogger.Log("[Admin] Config updated by '" + sender.GetName() + "' - Enabled: " + enableCooldown + ", Sec: " + cooldownSec + ", Max: " + maxTele);
+#endif
+    }
+
     // SERVER: Send admin response
     void SendAdminResponse(PlayerIdentity identity, bool success, string message)
     {
@@ -169,6 +244,12 @@ modded class PlayerBase
         ScriptRPC rpc = new ScriptRPC();
         rpc.Write(success);
         rpc.Write(message);
+        
+        // Always include current settings in response to keep UI sync'd
+        rpc.Write(VIPTeleportConfig.m_EnableCooldown);
+        rpc.Write(VIPTeleportConfig.m_CooldownSeconds);
+        rpc.Write(VIPTeleportConfig.m_MaxTeleportsPerHour);
+        
         rpc.Send(this, RPC_VIP_ADMIN_RESPONSE, true, identity);
     }
 
@@ -178,12 +259,19 @@ modded class PlayerBase
         bool success;
         string message;
 
-        if (!ctx.Read(success))
-            return;
-        if (!ctx.Read(message))
+        if (!ctx.Read(success) || !ctx.Read(message))
             return;
 
-        Print("[VIPTeleport] CLIENT: Received admin response - " + message);
+        // Sync local config settings from server (even for failures, to keep UI correct)
+        bool enabled;
+        int seconds, maxTele;
+        if (ctx.Read(enabled) && ctx.Read(seconds) && ctx.Read(maxTele))
+        {
+            VIPTeleportConfig.m_EnableCooldown = enabled;
+            VIPTeleportConfig.m_CooldownSeconds = seconds;
+            VIPTeleportConfig.m_MaxTeleportsPerHour = maxTele;
+        }
+
         VIPTeleportFunctions.ShowAdminReloadResult(success, message);
     }
 
@@ -198,7 +286,7 @@ modded class PlayerBase
 
         if (!playerMenu)
         {
-            Print("[VIPTeleport] Non-VIP player attempted to open menu: " + steamId);
+            VIPTeleportLogger.LogDebug("Non-VIP player attempted to open menu: " + steamId);
             return;
         }
 
@@ -236,9 +324,6 @@ modded class PlayerBase
         rpc.Send(this, RPC_VIP_TELEPORT_OPEN_MENU, true, sender);
 
         // Menu sent successfully
-#ifdef SERVER
-        VIPTeleportLogger.Log("[Menu] Player " + sender.GetName() + " opened VIPTeleport menu.");
-#endif
     }
 
     void OnRPCMenuReceive(ParamsReadContext ctx)
@@ -251,7 +336,7 @@ modded class PlayerBase
         // Read count first
         if (!ctx.Read(locationCount))
         {
-            Print("[VIPTeleport] ERROR: Failed to read locationCount from RPC!");
+            VIPTeleportLogger.LogDebug("ERROR: Failed to read locationCount from RPC!");
             return;
         }
 
@@ -260,7 +345,7 @@ modded class PlayerBase
         // Read menu info
         if (!ctx.Read(menuTitle))
         {
-            Print("[VIPTeleport] ERROR: Failed to read menuTitle from RPC!");
+            VIPTeleportLogger.LogDebug("ERROR: Failed to read menuTitle from RPC!");
             return;
         }
 
@@ -275,24 +360,24 @@ modded class PlayerBase
 
             if (!ctx.Read(name))
             {
-                Print("[VIPTeleport] ERROR: Failed to read location name at index " + i);
+                VIPTeleportLogger.LogDebug("ERROR: Failed to read location name at index " + i);
                 return;
             }
             if (!ctx.Read(pos))
             {
-                Print("[VIPTeleport] ERROR: Failed to read location position at index " + i);
+                VIPTeleportLogger.LogDebug("ERROR: Failed to read location position at index " + i);
                 return;
             }
             if (!ctx.Read(desc))
             {
-                Print("[VIPTeleport] ERROR: Failed to read location description at index " + i);
+                VIPTeleportLogger.LogDebug("ERROR: Failed to read location description at index " + i);
                 return;
             }
 
             float distance;
             if (!ctx.Read(distance))
             {
-                Print("[VIPTeleport] ERROR: Failed to read location distance at index " + i);
+                VIPTeleportLogger.LogDebug("ERROR: Failed to read location distance at index " + i);
                 return;
             }
 
@@ -313,9 +398,6 @@ modded class PlayerBase
             return;
 
         string steamId = sender.GetPlainId();
-        
-        Print("[VIPTeleport] === TELEPORT REQUEST START ===");
-        Print("[VIPTeleport] Player: " + sender.GetName() + " (" + steamId + ")");
         
         // ADMIN BYPASS: Admins skip cooldown and restricted zone checks
         bool isAdmin = VIPTeleportConfig.IsAdmin(steamId);
@@ -377,13 +459,13 @@ modded class PlayerBase
         
         if (!ctx.Read(locationName))
         {
-            Print("[VIPTeleport] ERROR: Failed to read location name from RPC");
+            VIPTeleportLogger.LogDebug("ERROR: Failed to read location name from RPC");
             return;
         }
         
         if (!ctx.Read(requestedPosition))
         {
-            Print("[VIPTeleport] ERROR: Failed to read requested position from RPC");
+            VIPTeleportLogger.LogDebug("ERROR: Failed to read requested position from RPC");
             return;
         }
 
@@ -392,7 +474,7 @@ modded class PlayerBase
 
         if (!playerMenu)
         {
-            Print("[VIPTeleport] Unauthorized teleport attempt from: " + steamId);
+            VIPTeleportLogger.LogDebug("Unauthorized teleport attempt from: " + steamId);
             // Severity 2 = Critical (Red Popup)
             SendTeleportResponse(sender, false, "You are not authorized to use VIP Teleport", 2);
             return;
@@ -416,7 +498,7 @@ modded class PlayerBase
         
         if (!locationFound)
         {
-            Print("[VIPTeleport] SECURITY: Invalid location requested by " + steamId + " - Location: " + locationName);
+            VIPTeleportLogger.LogDebug("SECURITY: Invalid location requested by " + steamId + " - Location: " + locationName);
             // Severity 2 = Critical (Red Popup)
             SendTeleportResponse(sender, false, "Invalid teleport location", 2);
 #ifdef SERVER
@@ -465,9 +547,7 @@ modded class PlayerBase
             else
             {
                 // Vehicle teleport not allowed for this location
-                // Severity 1 = Warning (Yellow)
                 SendTeleportResponse(sender, false, "Vehicle teleport is disabled for this location", 1);
-                Print("[VIPTeleport] Player " + sender.GetName() + " tried to teleport with vehicle to " + location.Name + " but it's disabled for this location");
 #ifdef SERVER
                 VIPTeleportLogger.Log("[Teleport] DENIED - Player '" + sender.GetName() + "' (" + sender.GetPlainId() + ") tried to teleport with vehicle to '" + location.Name + "' but vehicle teleport is disabled");
 #endif

@@ -1,9 +1,6 @@
 FrameWidgetClass VIPTeleportAdminMenuRoot {
  visible 1
- clipchildren 0
- ignorepointer 1
- color 0 0 0 0
- position 0 0
+ position 0 0.00133
  size 1 1
  halign center_ref
  valign center_ref
@@ -13,14 +10,9 @@ FrameWidgetClass VIPTeleportAdminMenuRoot {
  vexactsize 0
  {
   PanelWidgetClass AdminPanel {
-   visible 1
-   disabled 0
-   clipchildren 0
-   inheritalpha 0
-   ignorepointer 0
    color 0.1176 0.1176 0.1176 0.98
    position 0 0
-   size 450 350
+   size 500 480
    halign center_ref
    valign center_ref
    hexactpos 1
@@ -30,54 +22,158 @@ FrameWidgetClass VIPTeleportAdminMenuRoot {
    style ToolbarWidget
    {
     PanelWidgetClass Header {
-     visible 1
-     ignorepointer 1
      color 0.8235 0.6118 0.1176 1
      position 0 0
      size 1 50
-     hexactpos 1
-     vexactpos 1
      hexactsize 0
      vexactsize 1
      style rover_sim_colorable
      {
       TextWidgetClass TitleText {
-       visible 1
        ignorepointer 1
-       position 0 1
-       size 446 49
+       size 1 1
        halign center_ref
        valign center_ref
-       hexactpos 1
-       vexactpos 1
-       hexactsize 1
-       vexactsize 1
        text "ADMIN PANEL"
        font "gui/fonts/metron22"
-       "exact text" 0
-       "size to text h" 0
-       "size to text v" 0
        "text halign" center
        "text valign" center
       }
      }
     }
     PanelWidgetClass Body {
-     visible 1
-     position 0 70
-     size 0.9 260
+     ignorepointer 1
+     position -0.02 0.12
+     size 460 380
      halign center_ref
-     hexactpos 1
-     vexactpos 1
-     hexactsize 0
+     hexactsize 1
      vexactsize 1
      style blank
      {
+      PanelWidgetClass CooldownSettingsGroup {
+       ignorepointer 1
+       position -0.0013 0
+       size 1 220
+       hexactsize 0
+       vexactsize 1
+       {
+        TextWidgetClass CooldownHeader {
+         ignorepointer 1
+         color 0.8235 0.6118 0.1176 1
+         size 290 33
+         halign center_ref
+         hexactpos 1
+         vexactpos 1
+         hexactsize 1
+         vexactsize 1
+         text "COOLDOWN SETTINGS"
+         font "gui/fonts/metron-bold16"
+         "text halign" center
+         "text valign" center
+        }
+        CheckBoxWidgetClass EnableCooldownCheckbox {
+         position 3.8074 58.0925
+         size 272 21
+         hexactpos 1
+         vexactpos 1
+         hexactsize 1
+         vexactsize 1
+         draggable 0
+         style Default
+         "no focus" 0
+         text " Enable Cooldown System"
+         font "gui/fonts/metron14"
+         checked 1
+        }
+        TextWidgetClass SecondsLabel {
+         ignorepointer 1
+         position 3.5963 -12.3667
+         size 122.38901 14.037
+         valign center_ref
+         hexactpos 1
+         vexactpos 1
+         hexactsize 1
+         vexactsize 1
+         text "Cooldown Seconds:"
+         font "gui/fonts/metron14"
+         "exact text" 1
+        }
+        EditBoxWidgetClass CooldownSecondsEdit {
+         position -77.3215 -12.8055
+         size 41.2 19.02
+         halign center_ref
+         valign center_ref
+         hexactpos 1
+         vexactpos 1
+         hexactsize 1
+         vexactsize 1
+         style EditorProperty
+         text "30"
+         "exact text" 1
+         font "gui/fonts/metron14"
+        }
+        TextWidgetClass MaxTeleLabel {
+         ignorepointer 1
+         position -151.67502 11.4037
+         size 151 14
+         halign center_ref
+         valign center_ref
+         hexactpos 1
+         vexactpos 1
+         hexactsize 1
+         vexactsize 1
+         text "Max Teleports Per Hour:"
+         font "gui/fonts/metron14"
+         "exact text" 1
+        }
+        EditBoxWidgetClass MaxTeleportsEdit {
+         position 0.35212 0.50848
+         size 38.1741 19.8259
+         hexactsize 1
+         vexactsize 1
+         style EditorProperty
+         text "20"
+         "exact text" 1
+         font "gui/fonts/metron14"
+        }
+        ButtonWidgetClass ApplySettingsButton {
+         color 0.8235 0.6118 0.1176 1
+         position 0 3
+         size 290 40
+         halign center_ref
+         valign bottom_ref
+         hexactpos 1
+         vexactpos 1
+         hexactsize 1
+         vexactsize 1
+         style Colorable
+         {
+          TextWidgetClass ApplyText {
+           ignorepointer 1
+           position 0 0
+           size 1 1
+           text "APPLY CONFIGURATION"
+           font "gui/fonts/metron-bold14"
+           "text halign" center
+           "text valign" center
+          }
+         }
+        }
+       }
+      }
+      PanelWidgetClass Divider {
+       ignorepointer 1
+       color 1 1 1 0.2
+       position 0 235
+       size 1 2
+       hexactsize 0
+       vexactsize 1
+       style rover_sim_colorable
+      }
       ButtonWidgetClass ReloadButton {
-       visible 1
-       color 0.8235 0.6118 0.1176 1
-       position 2 -31
-       size 261 67
+       color 0.3 0.3 0.3 1
+       position 0 62
+       size 290 40
        halign center_ref
        valign center_ref
        hexactpos 1
@@ -86,22 +182,20 @@ FrameWidgetClass VIPTeleportAdminMenuRoot {
        vexactsize 1
        style Colorable
        {
-        TextWidgetClass ButtonText {
-         visible 1
+        TextWidgetClass ReloadText {
          ignorepointer 1
          size 1 1
-         text "Reload Configuration"
-         font "gui/fonts/metron-bold16"
+         text "RELOAD"
+         font "gui/fonts/metron-bold14"
          "text halign" center
          "text valign" center
         }
        }
       }
       PanelWidgetClass StatusPanel {
-       visible 1
        color 0 0 0 0.5
-       position 1 68
-       size 369 32
+       position 0 55
+       size 437 24
        halign center_ref
        valign bottom_ref
        hexactpos 1
@@ -111,14 +205,11 @@ FrameWidgetClass VIPTeleportAdminMenuRoot {
        style DayZDefaultPanel
        {
         TextWidgetClass StatusText {
-         visible 1
          ignorepointer 1
-         color 1 1 1 1
          position 0 0
          size 1 1
-         halign center_ref
          text "Status: Ready"
-         font "gui/fonts/metron14"
+         font "gui/fonts/metron-italic16"
          "exact text" 1
          "text halign" center
          "text valign" center
@@ -126,9 +217,8 @@ FrameWidgetClass VIPTeleportAdminMenuRoot {
        }
       }
       ButtonWidgetClass CloseButton {
-       visible 1
        color 0.8 0.2 0.2 1
-       size 180 51
+       size 230 30
        halign center_ref
        valign bottom_ref
        hexactpos 1
@@ -137,12 +227,11 @@ FrameWidgetClass VIPTeleportAdminMenuRoot {
        vexactsize 1
        style Colorable
        {
-        TextWidgetClass ButtonText {
-         visible 1
+        TextWidgetClass CloseText {
          ignorepointer 1
          size 1 1
-         text "Close Panel"
-         font "gui/fonts/metron-bold16"
+         text "CLOSE PANEL"
+         font "gui/fonts/metron-bold12"
          "text halign" center
          "text valign" center
         }

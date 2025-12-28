@@ -3,115 +3,68 @@ VIP TELEPORT MOD - By Saad3_3
 =================================
 
 [h1]OVERVIEW[/h1]
-Advanced VIP Teleport mod with multiple menu support for different player groups (VIPs, Admins, Public). Features flexible JSON configuration, vehicle teleport control, and automatic menu merging for players with multiple permissions.
+A premium, highly-configurable VIP Teleportation system for DayZ. Featuring multiple menu support, a modern glassmorphism UI, a robust anti-spam cooldown system, and restricted zone protection. Complete with a live in-game Admin Suite.
 
 [h1]KEY FEATURES[/h1]
 [list]
-[*] [b]Multiple Menu System[/b] - Create unlimited custom teleport menus
-[*] [b]Public & Private Menus[/b] - Configure menus for everyone or specific Steam IDs
-[*] [b]Menu Enable/Disable[/b] - Turn menus on/off without deleting
-[*] [b]Vehicle Teleport Control[/b] - Allow/prevent vehicle teleportation per menu
-[*] [b]Automatic Menu Merging[/b] - Players with multiple permissions see all locations unified
-[*] [b]Admin Panel[/b] - Live config reload without server restart
-[*] [b]Custom Keybinds[/b] - Assign any key you want (Settings > Controls > SOSH79)
-[*] [b]Double-Click Teleport[/b] - Quick teleportation with double-click
-[*] [b]Smart Vehicle Support[/b] - Teleport with vehicles and all passengers (when allowed)
-[*] [b]JSON Configuration[/b] - Easy to configure menus, locations, and permissions
+[*] [b]Advanced Cooldown System[/b] - Configurable wait times and hourly teleport limits to prevent abuse.
+[*] [b]Restricted Zones[/b] - Define prohibited "Teleport FROM" areas (e.g., military bases or combat zones).
+[*] [b]Modern Premium UI[/b] - Elegant glassmorphism aesthetic with animated progress bars and distance markers.
+[*] [b]Smart Notification System[/b] - Replaces messy chat messages with high-end, color-coded UI notifications.
+[*] [b]Live Admin Suite[/b] - Change cooldowns, toggle systems, and reload configs instantly without server restarts.
+[*] [b]Automatic Menu Merging[/b] - Unified view for players with multiple permissions (Admins/VIPs/Public).
+[*] [b]Vehicle Support[/b] - Teleport with vehicles and all passengers (fully configurable per menu).
+[*] [b]Double-Click Teleport[/b] - Fast and intuitive navigation.
+[*] [b]Dynamic Distance Display[/b] - View real-time distance to any teleport destination.
+[*] [b]JSON-Powered[/b] - Extremely easy to manage through flexible config files.
 [/list]
 
 [h1]INSTALLATION[/h1]
-[h2]Server Installation:[/h2]
+[h2]Server Setup:[/h2]
 [olist]
-[*] Download the mod from Steam Workshop or install manually
-[*] Add the mod to your server's launch parameters: [code]-mod=@VIPTeleport[/code]
-[*] Start your server - the mod will automatically create the configuration file
-[*] Navigate to: [code]DayZServer\Profiles\SOSH79\VIPTeleport\[/code]
-[*] Edit [b]VIPTeleportLocations.json[/b] to configure your settings
-[*] Edit [b]VIPTeleportAdmins.json[/b] and add your Steam64 ID (get it from https://steamid.io/)
-[*] Restart the server to apply changes
-[/olist]
-
-[h2]Client Installation:[/h2]
-[olist]
-[*] Subscribe to the mod on Steam Workshop
-[*] The mod will automatically download
-[*] Make sure your server has the mod enabled
-[*] Join the server and assign keybinds in Settings > Controls > SOSH79
+[*] Add [code]-mod=@VIPTeleport[/code] to your server launch parameters.
+[*] Start the server to generate default config files.
+[*] Go to: [code]DayZServer\Profiles\SOSH79\VIPTeleport\[/code]
+[*] Edit [b]VIPTeleportLocations.json[/b] to create your menus and points.
+[*] Add Admin Steam64 IDs to [b]VIPTeleportAdmins.json[/b].
+[*] [b]Note:[/b] You can use the in-game Admin Panel to reload changes instantly!
 [/olist]
 
 [h1]USAGE[/h1]
-[olist]
-[*] Assign keybinds in [b]Settings > Controls > SOSH79[/b] (default: empty)
-[*] Press your keybind to open teleport menu
-[*] Single-click location to view description
-[*] Double-click to teleport
-[*] Press [b]ESC[/b] to close
-[/olist]
+[list]
+[*] [b]Keybinds:[/b] Assign keys in Settings > Controls > SOSH79.
+[*] [b]Main Menu:[/b] Browse locations, check distances, and double-click to teleport.
+[*] [b]Admin Panel:[/b] Toggle cooldowns, set timers, and apply live updates via the Admin keybind.
+[/list]
 
-[h2]Admin Panel (Admins Only):[/h2]
-[olist]
-[*] Add your Steam64 ID to VIPTeleportAdmins.json
-[*] Assign keybind for admin menu in Controls
-[*] Press admin keybind to open panel
-[*] Click [b]Reload[/b] to refresh configs without restart
-[/olist]
+[h1]SAFETY & SECURITY[/h1]
+[list]
+[*] [b]Input Validation:[/b] Admin Panel prevents invalid numeric entries.
+[*] [b]RPC Protection:[/b] Secure server-side validation for all teleport and config requests.
+[*] [b]Logging:[/b] Dedicated session logs located in [code]Profiles\SOSH79\VIPTeleport\Logs\[/code].
+[/list]
 
-[h1]MENU EXAMPLES[/h1]
+[h1]CONFIGURATION EXAMPLES[/h1]
 
-[b]Public Menu (Everyone):[/b]
+[b]Multi-Menu JSON Logic:[/b]
 [code]
 {
-    "MenuTitle": "Public Spawns",
-    "IsPublic": 1,
-    "Enabled": 1,
-    "AllowVehicleTeleport": 0,
-    "AllowedSteamIDs": [],
-    "TeleportLocations": []
+    "CooldownSeconds": 30,
+    "MaxTeleportsPerHour": 10,
+    "EnableCooldown": 1,
+    "Menus": [
+        { "MenuTitle": "Public", "IsPublic": 1, "AllowVehicleTeleport": 0 },
+        { "MenuTitle": "VIP", "IsPublic": 0, "AllowVehicleTeleport": 1, "AllowedSteamIDs": ["ID1", "ID2"] }
+    ]
 }
 [/code]
-
-[b]VIP Menu (Specific Players):[/b]
-[code]
-{
-    "MenuTitle": "VIP Teleport",
-    "IsPublic": 0,
-    "Enabled": 1,
-    "AllowVehicleTeleport": 1,
-    "AllowedSteamIDs": ["76561198012345678"],
-    "TeleportLocations": []
-}
-[/code]
-
-[b]Disabled Menu:[/b]
-[code]
-{
-    "MenuTitle": "Event Locations",
-    "IsPublic": 0,
-    "Enabled": 0
-}
-[/code]
-
-[h1]MULTIPLE MENUS[/h1]
-Players with access to multiple menus see all locations merged into one. Each location keeps its original vehicle teleport setting from its parent menu.
-
-[h1]VEHICLE TELEPORTATION[/h1]
-When AllowVehicleTeleport = 1: Vehicle and all passengers teleport together
-When AllowVehicleTeleport = 0: Player must exit vehicle before teleporting
-
-[h1]COMMON SCENARIOS[/h1]
-[b]Public + VIP System:[/b] Create public menu (IsPublic=1, no vehicles) + VIP menu (IsPublic=0, with vehicles)
-[b]Role-Based:[/b] Different menus for Admin, Moderator, VIP, and Public with different permissions
-[b]Events:[/b] Keep event menus with Enabled=0, change to Enabled=1 when event starts
-
 
 [h1]PERMISSIONS[/h1]
-Free to use and modify. Credit Saad3_3 if redistributing.
-
-[h1]SUPPORT[/h1]
-Comment on Workshop page for support or feature requests.
+Free to use and modify. Please credit [b]Saad3_3[/b] if you redistribute or modify the code.
 
 [h1]CREDITS[/h1]
-Developed by: Saad3_3
-For the DayZ community
+Developed by: [b]Saad3_3[/b]
+Special thanks to the DayZ Modding Community.
 
-Enjoy your VIP Teleport experience!
+[h1]SUPPORT[/h1]
+For support, suggestions, or bug reports, please leave a comment on the workshop page.
