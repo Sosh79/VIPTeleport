@@ -5,13 +5,15 @@ class VIPTeleportLocation
     vector Position;
     string Description;
     bool AllowVehicleTeleport; // Inherited from parent menu
+    float Distance = 0; // Distance from player in meters
 
-    void VIPTeleportLocation(string name, vector pos, string desc, bool allowVehicle = true)
+    void VIPTeleportLocation(string name, vector pos, string desc, bool allowVehicle = true, float distance = 0)
     {
         Name = name;
         Position = pos;
         Description = desc;
         AllowVehicleTeleport = allowVehicle;
+        Distance = distance;
     }
 }
 
@@ -44,11 +46,16 @@ class VIPTeleportConfig
     static const string ADMIN_CONFIG_NAME = "VIPTeleportAdmins.json";
     static string CONFIG_PATH = CONFIG_FOLDER + CONFIG_NAME;
     static string ADMIN_CONFIG_PATH = CONFIG_FOLDER + ADMIN_CONFIG_NAME;
-    static const string CURRENT_VERSION = "2.0.0";
+    static const string CURRENT_VERSION = "2.0.5";
 
     static string m_ConfigVersion = "";
     static ref array<ref VIPTeleportMenuConfig> m_Menus = new array<ref VIPTeleportMenuConfig>;
     static ref array<string> m_AdminSteamIDs = new array<string>;
+    
+    // Cooldown settings (loaded from JSON)
+    static int m_CooldownSeconds = 30;              // Default: 30 seconds
+    static int m_MaxTeleportsPerHour = 20;          // Default: 20 per hour
+    static bool m_EnableCooldown = true;            // Default: enabled
 
     static void LoadConfig()
     {
@@ -169,6 +176,12 @@ class VIPTeleportConfig
                 // Version matches, load data
                 m_ConfigVersion = configData.CONFIG_VERSION;
                 m_Menus.Clear();
+                
+                // Load cooldown settings
+                m_CooldownSeconds = configData.CooldownSeconds;
+                m_MaxTeleportsPerHour = configData.MaxTeleportsPerHour;
+                m_EnableCooldown = configData.EnableCooldown;
+                Print("[VIPTeleport] Cooldown settings loaded - Cooldown: " + m_CooldownSeconds + "s, Max/hour: " + m_MaxTeleportsPerHour + ", Enabled: " + m_EnableCooldown);
 
                 foreach (VIPTeleportMenuData menuData : configData.Menus)
                 {
@@ -207,13 +220,19 @@ class VIPTeleportConfig
     {
         VIPTeleportConfigData defaultConfig = new VIPTeleportConfigData();
         defaultConfig.CONFIG_VERSION = CURRENT_VERSION;
+        
+        // Set default cooldown settings
+        defaultConfig.CooldownSeconds = 45;
+        defaultConfig.MaxTeleportsPerHour = 15;
+        defaultConfig.EnableCooldown = true;
+        
         defaultConfig.Menus = new array<ref VIPTeleportMenuData>;
 
         // Menu 0: Public Menu (Available to ALL players)
         VIPTeleportMenuData publicMenu = new VIPTeleportMenuData();
         publicMenu.MenuTitle = "Public Teleport";
         publicMenu.IsPublic = true; // Available to everyone
-        publicMenu.Enabled = true;  // Enabled by default (set to false to disable)        publicMenu.AllowVehicleTeleport = false;  // Public menu: no vehicle teleport        publicMenu.AllowedSteamIDs = new array<string>;
+        publicMenu.Enabled = false;  // Enabled by default (set to false to disable)        publicMenu.AllowVehicleTeleport = false;  // Public menu: no vehicle teleport        publicMenu.AllowedSteamIDs = new array<string>;
         publicMenu.TeleportLocations = new array<ref VIPTeleportLocationData>;
 
         VIPTeleportLocationData pubLoc1 = new VIPTeleportLocationData();
@@ -461,6 +480,13 @@ class VIPTeleportMenuData
 class VIPTeleportConfigData
 {
     string CONFIG_VERSION;
+    
+    // Cooldown settings (will appear right after CONFIG_VERSION in JSON)
+    int CooldownSeconds = 30;
+    int MaxTeleportsPerHour = 20;
+    bool EnableCooldown = true;
+    
+    // Menus array (will appear after cooldown settings)
     ref array<ref VIPTeleportMenuData> Menus;
 
     void VIPTeleportConfigData()

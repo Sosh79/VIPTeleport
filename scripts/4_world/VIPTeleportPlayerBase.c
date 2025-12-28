@@ -141,18 +141,23 @@ modded class PlayerBase
             return;
         }
 
-        Print("[VIPTeleport] Admin '" + sender.GetName() + "' requested config reload");
-
-        // Reload configuration
+        Print("[VIPTeleport] Admin reload config requested by: " + sender.GetName());
+        
+        // Reload configuration from JSON
         VIPTeleportConfig.LoadConfig();
-
+        
+        // Note: Client-side cache will be refreshed automatically when players
+        // request menu data after config reload
+        
         int menuCount = VIPTeleportConfig.m_Menus.Count();
         int adminCount = VIPTeleportConfig.m_AdminSteamIDs.Count();
 
         string successMsg = "Reloaded! Menus: " + menuCount + " | Admins: " + adminCount;
         SendAdminResponse(sender, true, successMsg);
 
-        Print("[VIPTeleport] Config reloaded successfully by admin");
+#ifdef SERVER
+        VIPTeleportLogger.Log("[Admin] Config reloaded by '" + sender.GetName() + "' - Menus: " + menuCount + ", Admins: " + adminCount);
+#endif
     }
 
     // SERVER: Send admin response
@@ -201,9 +206,7 @@ modded class PlayerBase
         array<ref VIPTeleportLocation> locations = playerMenu.TeleportLocations;
         string menuTitle = playerMenu.MenuTitle;
 
-        Print("[VIPTeleport] Preparing to send menu data:");
-        Print("[VIPTeleport] - Menu: " + menuTitle);
-        Print("[VIPTeleport] - Locations count: " + locations.Count());
+        // Sending menu data to client
 
         ScriptRPC rpc = new ScriptRPC();
 
@@ -214,18 +217,25 @@ modded class PlayerBase
         // Send menu info
         rpc.Write(menuTitle);
 
-        // Send each location separately
+        // Get player position for distance calculation
+        vector playerPos = this.GetPosition(); 
+        // Send each location separately with distance
         for (int i = 0; i < locationCount; i++)
         {
             VIPTeleportLocation loc = locations.Get(i);
+            
+            // Calculate distance from player to this location
+            float distance = vector.Distance(playerPos, loc.Position);
+            
             rpc.Write(loc.Name);
             rpc.Write(loc.Position);
             rpc.Write(loc.Description);
+            rpc.Write(distance); // Send distance in meters
         }
 
         rpc.Send(this, RPC_VIP_TELEPORT_OPEN_MENU, true, sender);
 
-        Print("[VIPTeleport] Sent menu '" + menuTitle + "' to player: " + sender.GetName());
+        // Menu sent successfully
 #ifdef SERVER
         VIPTeleportLogger.Log("[Menu] Player " + sender.GetName() + " opened VIPTeleport menu.");
 #endif
@@ -233,7 +243,7 @@ modded class PlayerBase
 
     void OnRPCMenuReceive(ParamsReadContext ctx)
     {
-        Print("[VIPTeleport] Client receiving menu data...");
+        // Receiving menu data from server
 
         int locationCount;
         string menuTitle;
@@ -245,7 +255,7 @@ modded class PlayerBase
             return;
         }
 
-        Print("[VIPTeleport] Expecting " + locationCount + " locations");
+        // Reading location data
 
         // Read menu info
         if (!ctx.Read(menuTitle))
@@ -279,14 +289,19 @@ modded class PlayerBase
                 return;
             }
 
-            VIPTeleportLocation loc = new VIPTeleportLocation(name, pos, desc);
+            float distance;
+            if (!ctx.Read(distance))
+            {
+                Print("[VIPTeleport] ERROR: Failed to read location distance at index " + i);
+                return;
+            }
+
+            VIPTeleportLocation loc = new VIPTeleportLocation(name, pos, desc, true, distance);
             locations.Insert(loc);
-            Print("[VIPTeleport] Received location: " + name);
+            // Location received
         }
 
-        Print("[VIPTeleport] Client received menu data:");
-        Print("[VIPTeleport] - Locations count: " + locations.Count());
-        Print("[VIPTeleport] - Menu title: " + menuTitle);
+        // Menu data loaded successfully
 
         // Show menu using helper class
         VIPTeleportFunctions.ShowMenu(locations, menuTitle);
@@ -297,12 +312,45 @@ modded class PlayerBase
         if (!sender)
             return;
 
-        int locationIndex;
-        if (!ctx.Read(locationIndex))
+        string steamId = sender.GetPlainId();
+        
+        Print("[VIPTeleport] === TELEPORT REQUEST START ===");
+        Print("[VIPTeleport] Player: " + sender.GetName() + " (" + steamId + ")");
+        
+        // ADMIN BYPASS: Admins skip cooldown check
+        bool isAdmin = VIPTeleportConfig.IsAdmin(steamId);
+        
+        // SECURITY: Check cooldown first to prevent spam/abuse (skip for admins)
+        if (!isAdmin)
+        {
+            string cooldownMessage;
+            if (!VIPTeleportCooldownManager.CanTeleport(steamId, cooldownMessage))
+            {
+                SendTeleportResponse(sender, false, cooldownMessage);
+#ifdef SERVER
+                VIPTeleportLogger.Log("[Cooldown] Blocked teleport for '" + sender.GetName() + "' (" + steamId + ") - " + cooldownMessage);
+#endif
+                return;
+            }
+        }
+
+        // SECURITY: Read location name and position instead of index
+        string locationName;
+        vector requestedPosition;
+        
+        if (!ctx.Read(locationName))
+        {
+            Print("[VIPTeleport] ERROR: Failed to read location name from RPC");
             return;
+        }
+        
+        if (!ctx.Read(requestedPosition))
+        {
+            Print("[VIPTeleport] ERROR: Failed to read requested position from RPC");
+            return;
+        }
 
         // Verify player is VIP and get their menu
-        string steamId = sender.GetPlainId();
         VIPTeleportMenuConfig playerMenu = VIPTeleportConfig.GetMenuForPlayer(steamId);
 
         if (!playerMenu)
@@ -312,16 +360,34 @@ modded class PlayerBase
             return;
         }
 
-        // Get location from player's menu
+        // SECURITY: Validate that the requested location exists in player's allowed menu
+        VIPTeleportLocation validLocation;
+        bool locationFound = false;
+        
         array<ref VIPTeleportLocation> locations = playerMenu.TeleportLocations;
-        if (locationIndex < 0 || locationIndex >= locations.Count())
+        foreach (VIPTeleportLocation loc : locations)
         {
-            Print("[VIPTeleport] Invalid location index: " + locationIndex);
+            // Match by name and verify position is close (within 10m margin for floating point differences)
+            if (loc.Name == locationName && vector.Distance(loc.Position, requestedPosition) < 10)
+            {
+                validLocation = loc;
+                locationFound = true;
+                break;
+            }
+        }
+        
+        if (!locationFound)
+        {
+            Print("[VIPTeleport] SECURITY: Invalid location requested by " + steamId + " - Location: " + locationName);
             SendTeleportResponse(sender, false, "Invalid teleport location");
+#ifdef SERVER
+            VIPTeleportLogger.Log("[SECURITY] Player '" + sender.GetName() + "' (" + steamId + ") attempted INVALID teleport to '" + locationName + "'");
+#endif
             return;
         }
 
-        VIPTeleportLocation location = locations.Get(locationIndex);
+        // Use server-side location data, not client data (NEVER trust client!)
+        VIPTeleportLocation location = validLocation;
 
         // Teleport player
         vector targetPos = location.Position;
@@ -332,6 +398,9 @@ modded class PlayerBase
             targetPos[1] = GetGame().SurfaceRoadY(targetPos[0], targetPos[2]);
         }
 
+        // Get current position for logging before teleport
+        vector currentPos = GetPosition();
+        
         // Check if player is in vehicle
         Transport vehicle = null;
         HumanCommandVehicle vehCommand = GetCommand_Vehicle();
@@ -347,11 +416,14 @@ modded class PlayerBase
             {
                 // Teleport vehicle with all passengers
                 vehicle.SetPosition(targetPos);
-                Print("[VIPTeleport] Player " + sender.GetName() + " teleported with vehicle to " + location.Name);
+                // Vehicle teleport successful
                 SendTeleportResponse(sender, true, "Teleported to " + location.Name + " with vehicle");
 #ifdef SERVER
-                VIPTeleportLogger.Log("[Teleport] Player '" + sender.GetName() + "' (" + sender.GetPlainId() + ") teleported WITH VEHICLE to '" + location.Name + "' at position " + targetPos.ToString());
+                VIPTeleportLogger.Log("[Teleport] Player '" + sender.GetName() + "' (" + sender.GetPlainId() + ") teleported WITH VEHICLE from " + currentPos.ToString() + " to '" + location.Name + "' at " + targetPos.ToString());
 #endif
+                // Record successful teleport in cooldown system (skip for admins)
+                if (!isAdmin)
+                    VIPTeleportCooldownManager.RecordTeleport(steamId, sender.GetName());
             }
             else
             {
@@ -367,11 +439,14 @@ modded class PlayerBase
         {
             // Teleport player only
             SetPosition(targetPos);
-            Print("[VIPTeleport] Player " + sender.GetName() + " teleported to " + location.Name);
+            // Teleport successful
             SendTeleportResponse(sender, true, "Teleported to " + location.Name);
 #ifdef SERVER
-            VIPTeleportLogger.Log("[Teleport] Player '" + sender.GetName() + "' (" + sender.GetPlainId() + ") teleported to '" + location.Name + "' at position " + targetPos.ToString());
+            VIPTeleportLogger.Log("[Teleport] Player '" + sender.GetName() + "' (" + sender.GetPlainId() + ") teleported from " + currentPos.ToString() + " to '" + location.Name + "' at " + targetPos.ToString());
 #endif
+            // Record successful teleport in cooldown system (skip for admins)
+            if (!isAdmin)
+                VIPTeleportCooldownManager.RecordTeleport(steamId, sender.GetName());
         }
     }
 

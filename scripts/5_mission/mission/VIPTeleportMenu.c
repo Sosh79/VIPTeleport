@@ -1,8 +1,14 @@
 class VIPTeleportMenu : UIScriptedMenu
 {
+    // Static cache for menu data (shared across all menu instances)
+    static ref array<ref VIPTeleportLocation> s_CachedLocations = null;
+    static string s_CachedMenuTitle = "";
+    static bool s_CacheValid = false;
+    
     protected TextWidget m_Title;
     protected TextListboxWidget m_LocationList;
     protected MultilineTextWidget m_Description;
+    protected ButtonWidget m_RefreshButton;
     protected int m_SelectedIndex = -1;
     protected ref array<ref VIPTeleportLocation> m_Locations;
     protected string m_PendingMenuTitle;
@@ -10,7 +16,7 @@ class VIPTeleportMenu : UIScriptedMenu
 
     void VIPTeleportMenu()
     {
-        Print("[VIPTeleport] Menu created");
+        // Menu constructor
     }
 
     override int GetID()
@@ -24,7 +30,7 @@ class VIPTeleportMenu : UIScriptedMenu
 
         if (!layoutRoot)
         {
-            Print("[VIPTeleport] Failed to load menu layout");
+            // Failed to load menu layout
             return null;
         }
 
@@ -32,23 +38,15 @@ class VIPTeleportMenu : UIScriptedMenu
         m_LocationList = TextListboxWidget.Cast(layoutRoot.FindAnyWidget("LocationList"));
         m_Description = MultilineTextWidget.Cast(layoutRoot.FindAnyWidget("Description"));
 
-        Print("[VIPTeleport] Widget status:");
-        Print("[VIPTeleport] - Title: " + (m_Title != null));
-        Print("[VIPTeleport] - LocationList: " + (m_LocationList != null));
-        Print("[VIPTeleport] - Description: " + (m_Description != null));
-
         // Make sure the root widget is visible
         if (layoutRoot)
         {
             layoutRoot.Show(true);
-            Print("[VIPTeleport] Root widget visibility set to true");
         }
 
         // Freeze camera movement, allow mouse only
         GetGame().GetInput().ChangeGameFocus(1);
         GetGame().GetUIManager().ShowUICursor(true);
-
-        Print("[VIPTeleport] Menu initialized successfully");
 
         return layoutRoot;
     }
@@ -56,34 +54,33 @@ class VIPTeleportMenu : UIScriptedMenu
     override void OnShow()
     {
         super.OnShow();
-        Print("[VIPTeleport] OnShow called");
-
-        // Camera control already set in Init(), don't call it again
 
         // Make sure layout is visible
         if (layoutRoot)
         {
             layoutRoot.Show(true);
-            Print("[VIPTeleport] layoutRoot shown");
         }
 
-        // Load data now that widgets are initialized
-        if (!m_DataLoaded && m_Locations && m_Locations.Count() > 0)
+        // Try to load from cache first
+        if (s_CacheValid && s_CachedLocations && s_CachedLocations.Count() > 0)
         {
-            Print("[VIPTeleport] OnShow - Loading locations now");
-            LoadLocationsInternal();
+            // Load from cache
+            m_Locations = s_CachedLocations;
+            m_PendingMenuTitle = s_CachedMenuTitle;
+            PopulateList();
             m_DataLoaded = true;
         }
         else
         {
-            Print("[VIPTeleport] OnShow - Data already loaded or no locations");
+            // Request from server
+            RequestMenuDataFromServer();
         }
     }
 
     override void OnHide()
     {
         super.OnHide();
-        Print("[VIPTeleport] OnHide called - Restoring camera control");
+        // Restore camera control
 
         // Restore camera control
         GetGame().GetInput().ChangeGameFocus(-1);
@@ -99,115 +96,128 @@ class VIPTeleportMenu : UIScriptedMenu
         {
             mission.SetMenuOpen(false);
         }
-
-        Print("[VIPTeleport] Camera control restored");
     }
 
+    // Load menu data (can be from server RPC or from cache)
     void LoadLocations(array<ref VIPTeleportLocation> locations, string menuTitle)
     {
-        Print("[VIPTeleport] LoadLocations - Storing data for later");
+        // Load location data
 
         if (!locations)
         {
-            Print("[VIPTeleport] ERROR: locations array is null!");
-            return;
+            return; // Invalid data
         }
 
-        Print("[VIPTeleport] Storing " + locations.Count() + " locations");
         m_Locations = locations;
         m_PendingMenuTitle = menuTitle;
+        
+        // Update cache
+        s_CachedLocations = locations;
+        s_CachedMenuTitle = menuTitle;
+        s_CacheValid = true;
+        
         m_DataLoaded = false;
+    }
+
+    // Request fresh data from server
+    void RequestMenuDataFromServer()
+    {
+        // Request menu from server
+        PlayerBase player = PlayerBase.Cast(GetGame().GetPlayer());
+        if (player)
+        {
+            ScriptRPC rpc = new ScriptRPC();
+            rpc.Send(player, RPC_VIP_TELEPORT_OPEN_MENU, true, null);
+        }
     }
 
     void LoadLocationsInternal()
     {
-        Print("[VIPTeleport] ========== LoadLocationsInternal START ==========");
-
         if (!m_Locations)
         {
-            Print("[VIPTeleport] ERROR: locations array is null!");
-            return;
+            return; // No locations
         }
 
-        Print("[VIPTeleport] Locations count: " + m_Locations.Count());
-
-        // Print all locations for debugging
-        for (int j = 0; j < m_Locations.Count(); j++)
-        {
-            VIPTeleportLocation testLoc = m_Locations.Get(j);
-            if (testLoc)
-            {
-                Print("[VIPTeleport] Location " + j + ": " + testLoc.Name);
-            }
-        }
-
+        // Set title
         if (m_Title)
         {
             m_Title.SetText(m_PendingMenuTitle);
-            Print("[VIPTeleport] Title set: " + m_PendingMenuTitle);
-        }
-        else
-        {
-            Print("[VIPTeleport] ERROR: Title widget is null!");
         }
 
+        // Populate location list
         if (m_LocationList)
         {
-            Print("[VIPTeleport] LocationList widget found");
-            Print("[VIPTeleport] Clearing location list");
             m_LocationList.ClearItems();
-
-            Print("[VIPTeleport] Items after clear: " + m_LocationList.GetNumItems());
 
             if (m_Locations && m_Locations.Count() > 0)
             {
-                Print("[VIPTeleport] Starting to add " + m_Locations.Count() + " locations to list");
                 for (int i = 0; i < m_Locations.Count(); i++)
                 {
                     VIPTeleportLocation loc = m_Locations.Get(i);
                     if (loc)
                     {
-                        Print("[VIPTeleport] [" + i + "] Adding location: " + loc.Name);
-                        int rowIndex = m_LocationList.AddItem(loc.Name, NULL, 0);
-                        Print("[VIPTeleport] [" + i + "] Added at row: " + rowIndex);
-                    }
-                    else
-                    {
-                        Print("[VIPTeleport] ERROR: Location at index " + i + " is null!");
+                        m_LocationList.AddItem(loc.Name, NULL, 0);
                     }
                 }
-                int itemCount = m_LocationList.GetNumItems();
-                Print("[VIPTeleport] LocationList final count: " + itemCount);
-
-                if (itemCount > 0)
-                {
-                    Print("[VIPTeleport] SUCCESS: Locations added to list!");
-
-                    // Make sure the listbox is visible
-                    m_LocationList.Show(true);
-
-                    // Try to select first item to test
-                    m_LocationList.SelectRow(0);
-                    Print("[VIPTeleport] Selected first row for testing");
-                }
-                else
-                {
-                    Print("[VIPTeleport] ERROR: No items in list after adding!");
-                }
+                
+                // Show and select first item
+                m_LocationList.Show(true);
+                m_LocationList.SelectRow(0);
             }
-            else
-            {
-                Print("[VIPTeleport] ERROR: No locations to add!");
-            }
+        }
+
+        UpdateDescription();
+    }
+
+    // Helper: Format distance for display
+    string FormatDistance(float distanceMeters)
+    {
+        if (distanceMeters >= 1000)
+        {
+            // Convert to km and round to 1 decimal
+            float distanceKm = distanceMeters / 1000.0;
+            int roundedKm = Math.Round(distanceKm * 10);
+            float displayKm = roundedKm / 10.0;
+            return displayKm.ToString() + "km";
         }
         else
         {
-            Print("[VIPTeleport] ERROR: LocationList widget is null!");
+            // Round to nearest meter
+            int roundedM = Math.Round(distanceMeters);
+            return roundedM.ToString() + "m";
         }
+    }
 
-        Print("[VIPTeleport] ========== LoadLocationsInternal END ==========");
+    // Helper: Populate list from current m_Locations
+    void PopulateList()
+    {
+        if (!m_LocationList || !m_Locations) return;
+        
+        m_LocationList.ClearItems();
+        
+        for (int i = 0; i < m_Locations.Count(); i++)
+        {
+            VIPTeleportLocation loc = m_Locations.Get(i);
+            if (loc)
+            {
+                // Add distance to location name
+                string displayName = loc.Name + " (" + FormatDistance(loc.Distance) + ")";
+                m_LocationList.AddItem(displayName, NULL, 0);
+            }
+        }
+        
+        if (m_Title)
+            m_Title.SetText(m_PendingMenuTitle);
+            
+        m_DataLoaded = true;
+    }
 
-        UpdateDescription();
+    // Static method: Invalidate cache (call when config reloads)
+    static void InvalidateCache()
+    {
+        s_CacheValid = false;
+        s_CachedLocations = null;
+        s_CachedMenuTitle = "";
     }
 
     override bool OnChange(Widget w, int x, int y, bool finished)
@@ -259,7 +269,7 @@ class VIPTeleportMenu : UIScriptedMenu
 
         if (key == KeyCode.KC_ESCAPE || key == KeyCode.KC_F5)
         {
-            Print("[VIPTeleport] Close key pressed - closing menu");
+            // Close menu
             Close();
             return true;
         }
@@ -269,51 +279,32 @@ class VIPTeleportMenu : UIScriptedMenu
 
     void UpdateDescription()
     {
-        if (!m_Description)
-            return;
-
-        if (m_SelectedIndex >= 0 && m_SelectedIndex < m_Locations.Count())
-        {
-            VIPTeleportLocation loc = m_Locations.Get(m_SelectedIndex);
-            string desc = loc.Description + "\n\n";
-            desc += "Position: " + loc.Position.ToString();
-            m_Description.SetText(desc);
-        }
-        else
-        {
-            m_Description.SetText("Select a location to teleport");
-        }
+        // Description display disabled
     }
 
     void OnTeleportClicked()
     {
-        Print("[VIPTeleport] OnTeleportClicked - Selected index: " + m_SelectedIndex);
-
         if (m_SelectedIndex >= 0 && m_SelectedIndex < m_Locations.Count())
         {
             VIPTeleportLocation selectedLoc = m_Locations.Get(m_SelectedIndex);
-            Print("[VIPTeleport] Teleporting to: " + selectedLoc.Name);
 
             // Send teleport request to server
             PlayerBase player = PlayerBase.Cast(GetGame().GetPlayer());
             if (player)
             {
-                Print("[VIPTeleport] Sending teleport RPC to server");
                 ScriptRPC rpc = new ScriptRPC();
-                rpc.Write(m_SelectedIndex);
+                
+                // SECURITY: Send location name and position instead of index for validation
+                rpc.Write(selectedLoc.Name);
+                rpc.Write(selectedLoc.Position);
+                
                 rpc.Send(player, RPC_VIP_TELEPORT_REQUEST, true, null);
 
-                Print("[VIPTeleport] Closing menu after teleport request");
                 Close();
-            }
-            else
-            {
-                Print("[VIPTeleport] ERROR: Player is null!");
             }
         }
         else
         {
-            Print("[VIPTeleport] ERROR: No location selected or invalid index");
             GetGame().GetUIManager().ShowDialog("VIP Teleport", "Please select a location first", 0, DBT_OK, DBB_NONE, DMT_NONE, null);
         }
     }

@@ -7,7 +7,7 @@ class VIPTeleportAdminMenu extends UIScriptedMenu
 
     void VIPTeleportAdminMenu()
     {
-        Print("[VIPTeleport] Admin Menu created");
+        // Admin menu constructor
     }
 
     override int GetID()
@@ -21,8 +21,7 @@ class VIPTeleportAdminMenu extends UIScriptedMenu
 
         if (!layoutRoot)
         {
-            Print("[VIPTeleport] Failed to load admin menu layout");
-            return null;
+            return null; // Failed to load
         }
 
         m_TitleText = TextWidget.Cast(layoutRoot.FindAnyWidget("TitleText"));
@@ -52,7 +51,7 @@ class VIPTeleportAdminMenu extends UIScriptedMenu
     {
         if (w == m_ReloadButton)
         {
-            Print("[VIPTeleport] Admin clicked reload button");
+            // Reload config button
             UpdateStatus("Reloading configuration...");
 
             // Send reload request to server
@@ -67,7 +66,7 @@ class VIPTeleportAdminMenu extends UIScriptedMenu
 
         if (w == m_CloseButton)
         {
-            Print("[VIPTeleport] Admin: Close button clicked");
+            // Close button
 
             // Get MissionGameplay to close the menu properly
             MissionGameplay mission = MissionGameplay.Cast(GetGame().GetMission());
@@ -97,13 +96,11 @@ class VIPTeleportAdminMenu extends UIScriptedMenu
     override void OnShow()
     {
         super.OnShow();
-        Print("[VIPTeleport] Admin menu shown");
     }
 
     override void OnHide()
     {
         super.OnHide();
-        Print("[VIPTeleport] Admin menu hidden - restoring camera control");
 
         // Restore camera control
         GetGame().GetInput().ChangeGameFocus(-1);

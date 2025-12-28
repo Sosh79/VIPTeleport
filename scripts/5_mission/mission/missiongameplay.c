@@ -11,7 +11,6 @@ modded class MissionGameplay
     override void OnInit()
     {
         super.OnInit();
-        Print("[VIPTeleport] Client initialized");
     }
 
     override void OnMissionFinish()
@@ -32,17 +31,14 @@ modded class MissionGameplay
             string menuTitle;
             VIPTeleportFunctions.GetPendingMenuData(locations, menuTitle);
 
-            Print("[VIPTeleport] MissionGameplay detected pending menu:");
-            Print("[VIPTeleport] - Locations count: " + locations.Count());
-            Print("[VIPTeleport] - Menu title: " + menuTitle);
-
+            // Handle pending menu
             ShowTeleportMenu(locations, menuTitle);
         }
 
         // Check for pending admin menu from VIPTeleportFunctions
         if (VIPTeleportFunctions.HasPendingAdminMenu())
         {
-            Print("[VIPTeleport] MissionGameplay detected pending admin menu");
+            // Handle pending admin menu
             VIPTeleportFunctions.ClearPendingAdminMenu();
             ShowAdminMenu();
         }
@@ -87,23 +83,17 @@ modded class MissionGameplay
     void SetMenuOpen(bool isOpen)
     {
         m_MenuIsOpen = isOpen;
-        Print("[VIPTeleport] Menu state changed to: " + isOpen);
     }
 
     void ToggleTeleportMenu()
     {
-        Print("[VIPTeleport] ToggleTeleportMenu called");
-        Print("[VIPTeleport] m_MenuIsOpen flag: " + m_MenuIsOpen);
-
         if (m_MenuIsOpen)
         {
-            Print("[VIPTeleport] Closing menu");
             CloseTeleportMenu();
         }
         else
         {
-            Print("[VIPTeleport] Opening menu - requesting data from server");
-            // Request menu data from server via RPC
+            // Request menu data from server
             PlayerBase player = PlayerBase.Cast(GetGame().GetPlayer());
             if (player)
             {
@@ -115,18 +105,13 @@ modded class MissionGameplay
 
     void ToggleAdminMenu()
     {
-        Print("[VIPTeleport] ToggleAdminMenu called");
-        Print("[VIPTeleport] m_AdminMenuIsOpen flag: " + m_AdminMenuIsOpen);
-
         if (m_AdminMenuIsOpen)
         {
-            Print("[VIPTeleport] Closing admin menu");
             CloseAdminMenu();
         }
         else
         {
-            Print("[VIPTeleport] Opening admin menu - requesting from server");
-            // Request admin menu from server via RPC
+            // Request admin menu from server
             PlayerBase player = PlayerBase.Cast(GetGame().GetPlayer());
             if (player)
             {
@@ -137,34 +122,23 @@ modded class MissionGameplay
 
     void CloseTeleportMenu()
     {
-        Print("[VIPTeleport] CloseTeleportMenu called");
-
-        // Restore camera control before closing
+        // Restore camera control
         GetGame().GetInput().ChangeGameFocus(-1);
         GetGame().GetUIManager().ShowUICursor(false);
-        Print("[VIPTeleport] Camera control restored in CloseTeleportMenu");
 
         if (m_VIPTeleportMenu)
         {
-            Print("[VIPTeleport] Closing menu via Close()");
             m_VIPTeleportMenu.Close();
             m_VIPTeleportMenu = null;
-        }
-        else
-        {
-            Print("[VIPTeleport] Menu is already null");
         }
         m_MenuIsOpen = false;
     }
 
     void ShowTeleportMenu(array<ref VIPTeleportLocation> locations, string menuTitle)
     {
-        Print("[VIPTeleport] ShowTeleportMenu called with " + locations.Count() + " locations");
-
         if (!locations || locations.Count() == 0)
         {
-            Print("[VIPTeleport] ERROR: No locations to show!");
-            return;
+            return; // No locations
         }
 
         m_IsVIP = true;
@@ -172,54 +146,35 @@ modded class MissionGameplay
         // Close existing menu if open
         if (GetGame().GetUIManager().IsMenuOpen(MENU_VIPTELEPORT))
         {
-            Print("[VIPTeleport] Closing existing menu first");
             GetGame().GetUIManager().HideScriptedMenu(m_VIPTeleportMenu);
         }
 
-        // Always create fresh menu
-        Print("[VIPTeleport] Creating new menu instance");
+        // Create fresh menu
         m_VIPTeleportMenu = new VIPTeleportMenu();
 
         if (m_VIPTeleportMenu)
         {
-            Print("[VIPTeleport] Menu instance created, loading locations");
             m_VIPTeleportMenu.LoadLocations(locations, menuTitle);
-            Print("[VIPTeleport] Showing scripted menu");
             m_MenuIsOpen = true;
             GetGame().GetUIManager().ShowScriptedMenu(m_VIPTeleportMenu, null);
-            Print("[VIPTeleport] Menu displayed successfully");
-        }
-        else
-        {
-            Print("[VIPTeleport] ERROR: Failed to create menu instance!");
         }
     }
 
     void ShowAdminMenu()
     {
-        Print("[VIPTeleport] ShowAdminMenu called");
-
         // Close existing admin menu if open
         if (GetGame().GetUIManager().IsMenuOpen(MENU_VIPTELEPORT_ADMIN))
         {
-            Print("[VIPTeleport] Closing existing admin menu first");
             GetGame().GetUIManager().HideScriptedMenu(m_VIPTeleportAdminMenu);
         }
 
         // Create new admin menu
-        Print("[VIPTeleport] Creating new admin menu instance");
         m_VIPTeleportAdminMenu = new VIPTeleportAdminMenu();
 
         if (m_VIPTeleportAdminMenu)
         {
-            Print("[VIPTeleport] Admin menu instance created");
             m_AdminMenuIsOpen = true;
             GetGame().GetUIManager().ShowScriptedMenu(m_VIPTeleportAdminMenu, null);
-            Print("[VIPTeleport] Admin menu displayed successfully");
-        }
-        else
-        {
-            Print("[VIPTeleport] ERROR: Failed to create admin menu instance!");
         }
     }
 
@@ -248,7 +203,6 @@ modded class MissionGameplay
     void SetAdminMenuOpen(bool isOpen)
     {
         m_AdminMenuIsOpen = isOpen;
-        Print("[VIPTeleport] Admin menu state changed to: " + isOpen);
     }
 
     void ShowTeleportResult(bool success, string message)
