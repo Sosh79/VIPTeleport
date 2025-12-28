@@ -1,4 +1,4 @@
-FrameWidgetClass VIPTeleportMenuRoot {
+FrameWidgetClass VIPTeleportDialogRoot {
  color 0 0 0 0
  position 0 0
  size 1 1
@@ -12,7 +12,7 @@ FrameWidgetClass VIPTeleportMenuRoot {
   PanelWidgetClass Background {
    visible 1
    ignorepointer 1
-   color 0 0 0 0.8
+   color 0 0 0 0.85
    position 0 0
    size 1 1
    halign center_ref
@@ -30,7 +30,7 @@ FrameWidgetClass VIPTeleportMenuRoot {
      ignorepointer 0
      color 0.1176 0.1176 0.1176 0.98
      position 0 0
-     size 450 600
+     size 400 250
      halign center_ref
      valign center_ref
      hexactpos 1
@@ -44,28 +44,20 @@ FrameWidgetClass VIPTeleportMenuRoot {
        ignorepointer 1
        color 0.8235 0.6118 0.1176 1
        position 0 0
-       size 1 50
+       size 1 45
        hexactpos 1
        vexactpos 1
        hexactsize 0
        vexactsize 1
        style rover_sim_colorable
        {
-        TextWidgetClass Title {
+        TextWidgetClass DialogTitle {
          visible 1
          ignorepointer 1
-         size 444 45
-         halign center_ref
-         valign center_ref
-         hexactpos 1
-         vexactpos 1
-         hexactsize 1
-         vexactsize 1
+         position 0 0
+         size 1 1
          text "VIP TELEPORT"
-         font "gui/fonts/metron-bold16"
-         "exact text" 0
-         "size to text h" 0
-         "size to text v" 0
+         font "gui/fonts/metron-bold22"
          "text halign" center
          "text valign" center
         }
@@ -73,8 +65,8 @@ FrameWidgetClass VIPTeleportMenuRoot {
       }
       PanelWidgetClass Body {
        visible 1
-       position 0 60
-       size 0.9 420
+       position 0 55
+       size 0.9 120
        halign center_ref
        hexactpos 1
        vexactpos 1
@@ -82,22 +74,29 @@ FrameWidgetClass VIPTeleportMenuRoot {
        vexactsize 1
        style blank
        {
-        TextListboxWidgetClass LocationList {
+        MultilineTextWidgetClass DialogContent {
          visible 1
-         color 1 1 1 0.1
-         position 0 0
-         size 1 1
-         style Editor
-         "title visible" 0
-         colums ""
-         font "gui/fonts/metron16"
+         ignorepointer 1
+         position 0 1
+         size 346 15
+         halign center_ref
+         valign center_ref
+         hexactpos 1
+         vexactpos 1
+         hexactsize 1
+         vexactsize 1
+         style DayZNormal
+         text "Error message goes here."
+         font "gui/fonts/metron22"
+         "text valign" center
+         wrap 0
         }
        }
       }
       PanelWidgetClass Footer {
        visible 1
        position 0 15
-       size 0.9 90
+       size 0.9 45
        halign center_ref
        valign bottom_ref
        hexactpos 1
@@ -106,40 +105,20 @@ FrameWidgetClass VIPTeleportMenuRoot {
        vexactsize 1
        style blank
        {
-        ButtonWidgetClass TeleportButton {
+        ButtonWidgetClass OkButton {
          visible 1
          color 0.8235 0.6118 0.1176 1
          position 0 0
-         size 1 0.45
-         style Colorable
-         {
-          TextWidgetClass TeleportBtnText {
-           visible 1
-           ignorepointer 1
-           size 1 1
-           text "TELEPORT"
-           font "gui/fonts/metron-bold16"
-           "text halign" center
-           "text valign" center
-          }
-         }
-        }
-        ButtonWidgetClass CloseButton {
-         visible 1
-         color 0.8 0.2 0.2 1
-         size 0.3 0.35
+         size 0.5 1
          halign center_ref
-         valign bottom_ref
-         hexactpos 1
-         vexactpos 1
          style Colorable
          {
-          TextWidgetClass CloseBtnText {
+          TextWidgetClass OkBtnText {
            visible 1
            ignorepointer 1
            size 1 1
-           text "CLOSE"
-           font "gui/fonts/metron14"
+           text "OK"
+           font "gui/fonts/metron-bold16"
            "text halign" center
            "text valign" center
           }

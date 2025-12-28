@@ -1,0 +1,16 @@
+MetaFileClass {
+ Name "{0CAE953096BAD6DA}VIPTeleport/GUI/icons/notif_icon_teleport.edds"
+ Author "rebal"
+ ChangeDate -1461619812
+ Configurations {
+  PNGResourceClass PC {
+   SourceFile "notif_icon_teleport.png"
+  }
+  PNGResourceClass XBOX_ONE : PC {
+  }
+  PNGResourceClass PS4 : PC {
+  }
+  PNGResourceClass LINUX : PC {
+  }
+ }
+}

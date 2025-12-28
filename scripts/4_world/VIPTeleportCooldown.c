@@ -79,6 +79,48 @@ class VIPTeleportCooldownManager
         
         return true;
     }
+
+    // Get remaining cooldown time in seconds
+    static int GetRemainingCooldown(string steamId)
+    {
+        if (!VIPTeleportConfig.m_EnableCooldown || !m_PlayerData.Contains(steamId))
+        {
+            return 0;
+        }
+
+        VIPTeleportPlayerData data = m_PlayerData.Get(steamId);
+        int currentTick = GetGame().GetTickTime();
+        int ticksSinceLast = currentTick - data.lastTeleportTick;
+        int cooldownTicks = VIPTeleportConfig.m_CooldownSeconds;
+
+        if (ticksSinceLast < cooldownTicks)
+        {
+            return cooldownTicks - ticksSinceLast;
+        }
+
+        return 0;
+    }
+
+    // Get current teleport count for the hour
+    static int GetTeleportCount(string steamId)
+    {
+        if (!m_PlayerData.Contains(steamId))
+        {
+            return 0;
+        }
+
+        VIPTeleportPlayerData data = m_PlayerData.Get(steamId);
+        
+        // Manual check for hour reset (similar to CanTeleport)
+        int currentTick = GetGame().GetTickTime();
+        int timeSinceHourStart = currentTick - data.hourStartTick;
+        if (timeSinceHourStart >= 3600)
+        {
+            return 0;
+        }
+
+        return data.teleportCount;
+    }
     
     // Record successful teleport
     static void RecordTeleport(string steamId, string playerName = "")

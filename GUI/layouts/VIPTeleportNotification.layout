@@ -1,0 +1,78 @@
+FrameWidgetClass VIPTeleportNotificationRoot {
+ position 0 0
+ size 350 80
+ halign right_ref
+ hexactpos 1
+ vexactpos 1
+ hexactsize 1
+ vexactsize 1
+ {
+  PanelWidgetClass Background {
+   ignorepointer 1
+   color 0.1176 0.1176 0.1176 0.95
+   position 0 0
+   size 350 80
+   hexactsize 1
+   vexactsize 1
+   style ToolbarWidget
+   {
+    PanelWidgetClass AccentBar {
+     ignorepointer 1
+     color 0.8235 0.6118 0.1176 1
+     position 0 0
+     size 5 1
+     hexactsize 1
+     vexactsize 0
+     style rover_sim_colorable
+    }
+    ImageWidgetClass Icon {
+     disabled 0
+     clipchildren 0
+     inheritalpha 0
+     ignorepointer 1
+     ignoregloballv 0
+     keepsafezone 0
+     position 15 -1
+     size 50 50
+     valign center_ref
+     hexactpos 1
+     vexactpos 1
+     hexactsize 1
+     vexactsize 1
+     scaled 1
+     draggable 0
+     mode additive
+     "src alpha" 0
+     "stretch mode" stretch_w_h
+    }
+    TextWidgetClass Title {
+     ignorepointer 1
+     color 0.8235 0.6118 0.1176 1
+     position 76.4222 12.5778
+     size 267.815 21.5517
+     hexactpos 1
+     vexactpos 1
+     hexactsize 1
+     vexactsize 1
+     text "NOTIFICATION"
+     font "gui/fonts/metron-bold16"
+     "text valign" center
+    }
+    MultilineTextWidgetClass Message {
+     ignorepointer 1
+     color 0.9 0.9 0.9 1
+     position 79 46
+     size 260 13
+     hexactpos 1
+     vexactpos 1
+     hexactsize 1
+     vexactsize 1
+     text "Message content goes here."
+     font "gui/fonts/metron12"
+     "exact text" 1
+     "text valign" center
+    }
+   }
+  }
+ }
+}

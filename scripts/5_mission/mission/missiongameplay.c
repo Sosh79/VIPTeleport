@@ -24,6 +24,9 @@ modded class MissionGameplay
 
         m_KeyPressTimer += timeslice;
 
+        // Update custom notifications
+        VIPTeleportNotificationManager.OnUpdate(timeslice);
+
         // Check for pending menu from VIPTeleportFunctions
         if (VIPTeleportFunctions.HasPendingMenu())
         {
@@ -54,6 +57,26 @@ modded class MissionGameplay
             {
                 m_VIPTeleportAdminMenu.ShowReloadResult(reloadSuccess, reloadMessage);
             }
+        }
+
+        // Check for pending custom dialog from VIPTeleportFunctions
+        if (VIPTeleportFunctions.HasPendingDialog())
+        {
+            string dialogMessage = VIPTeleportFunctions.GetPendingDialogMessage();
+            VIPTeleportDialog dialog = VIPTeleportDialog.Cast(GetGame().GetUIManager().EnterScriptedMenu(MENU_VIPTELEPORT_DIALOG, null));
+            if (dialog)
+            {
+                dialog.SetMessage(dialogMessage);
+            }
+        }
+
+        // Check for pending custom notification
+        if (VIPTeleportFunctions.HasPendingNotification())
+        {
+            string nTitle, nMessage, nIcon;
+            float nDuration;
+            VIPTeleportFunctions.GetPendingNotification(nTitle, nMessage, nIcon, nDuration);
+            VIPTeleportNotificationManager.AddNotification(nTitle, nMessage, nIcon, nDuration);
         }
 
         // Check for menu key press with toggle
@@ -205,19 +228,23 @@ modded class MissionGameplay
         m_AdminMenuIsOpen = isOpen;
     }
 
-    void ShowTeleportResult(bool success, string message)
+    override UIScriptedMenu CreateScriptedMenu(int id)
     {
-        PlayerBase player = PlayerBase.Cast(GetGame().GetPlayer());
-        if (player)
+        UIScriptedMenu menu = super.CreateScriptedMenu(id);
+        if (!menu)
         {
-            if (success)
+            switch (id)
             {
-                player.MessageStatus(message);
+                case MENU_VIPTELEPORT_DIALOG:
+                    menu = new VIPTeleportDialog();
+                    break;
             }
-            else
+            if (menu)
             {
-                player.MessageImportant(message);
+                menu.SetID(id);
             }
         }
+        return menu;
     }
+
 }

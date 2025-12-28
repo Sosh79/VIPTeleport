@@ -44,10 +44,19 @@ FrameWidgetClass VIPTeleportAdminMenuRoot {
       TextWidgetClass TitleText {
        visible 1
        ignorepointer 1
-       position 0 0
-       size 1 1
+       position 0 1
+       size 446 49
+       halign center_ref
+       valign center_ref
+       hexactpos 1
+       vexactpos 1
+       hexactsize 1
+       vexactsize 1
        text "ADMIN PANEL"
-       font "gui/fonts/metron-bold22"
+       font "gui/fonts/metron22"
+       "exact text" 0
+       "size to text h" 0
+       "size to text v" 0
        "text halign" center
        "text valign" center
       }

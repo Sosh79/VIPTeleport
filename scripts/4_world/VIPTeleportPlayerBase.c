@@ -328,7 +328,8 @@ modded class PlayerBase
             {
                 if (vector.Distance(currentPos, zone.Center) <= zone.Radius)
                 {
-                    SendTeleportResponse(sender, false, zone.Message);
+                    // Severity 2 = Critical (Red Popup)
+                    SendTeleportResponse(sender, false, zone.Message, 2);
 #ifdef SERVER
                     VIPTeleportLogger.Log("[Restricted] Blocked teleport for '" + sender.GetName() + "' (" + steamId + ") from " + zone.Name);
 #endif
@@ -340,12 +341,31 @@ modded class PlayerBase
         // SECURITY: Check cooldown first to prevent spam/abuse (skip for admins)
         if (!isAdmin)
         {
-            string cooldownMessage;
-            if (!VIPTeleportCooldownManager.CanTeleport(steamId, cooldownMessage))
+            string cooldownReason;
+            if (!VIPTeleportCooldownManager.CanTeleport(steamId, cooldownReason))
             {
-                SendTeleportResponse(sender, false, cooldownMessage);
+                int remainingS = VIPTeleportCooldownManager.GetRemainingCooldown(steamId);
+                int currentCount = VIPTeleportCooldownManager.GetTeleportCount(steamId);
+                int maxCount = VIPTeleportConfig.m_MaxTeleportsPerHour;
+
+                string detailedMsg = "";
+                if (remainingS > 0)
+                {
+                    detailedMsg = "Cooldown: Please wait " + remainingS.ToString() + " more seconds";
+                }
+                else if (currentCount >= maxCount)
+                {
+                    detailedMsg = "Limit Reached: " + currentCount.ToString() + "/" + maxCount.ToString() + " teleports used this hour";
+                }
+                else
+                {
+                    detailedMsg = cooldownReason;
+                }
+
+                // Severity 1 = Warning (Yellow)
+                SendTeleportResponse(sender, false, detailedMsg, 1);
 #ifdef SERVER
-                VIPTeleportLogger.Log("[Cooldown] Blocked teleport for '" + sender.GetName() + "' (" + steamId + ") - " + cooldownMessage);
+                VIPTeleportLogger.Log("[Cooldown] Blocked teleport for '" + sender.GetName() + "' (" + steamId + ") - " + detailedMsg);
 #endif
                 return;
             }
@@ -373,7 +393,8 @@ modded class PlayerBase
         if (!playerMenu)
         {
             Print("[VIPTeleport] Unauthorized teleport attempt from: " + steamId);
-            SendTeleportResponse(sender, false, "You are not authorized to use VIP Teleport");
+            // Severity 2 = Critical (Red Popup)
+            SendTeleportResponse(sender, false, "You are not authorized to use VIP Teleport", 2);
             return;
         }
 
@@ -396,7 +417,8 @@ modded class PlayerBase
         if (!locationFound)
         {
             Print("[VIPTeleport] SECURITY: Invalid location requested by " + steamId + " - Location: " + locationName);
-            SendTeleportResponse(sender, false, "Invalid teleport location");
+            // Severity 2 = Critical (Red Popup)
+            SendTeleportResponse(sender, false, "Invalid teleport location", 2);
 #ifdef SERVER
             VIPTeleportLogger.Log("[SECURITY] Player '" + sender.GetName() + "' (" + steamId + ") attempted INVALID teleport to '" + locationName + "'");
 #endif
@@ -443,7 +465,8 @@ modded class PlayerBase
             else
             {
                 // Vehicle teleport not allowed for this location
-                SendTeleportResponse(sender, false, "Vehicle teleport is not allowed for this location");
+                // Severity 1 = Warning (Yellow)
+                SendTeleportResponse(sender, false, "Vehicle teleport is disabled for this location", 1);
                 Print("[VIPTeleport] Player " + sender.GetName() + " tried to teleport with vehicle to " + location.Name + " but it's disabled for this location");
 #ifdef SERVER
                 VIPTeleportLogger.Log("[Teleport] DENIED - Player '" + sender.GetName() + "' (" + sender.GetPlainId() + ") tried to teleport with vehicle to '" + location.Name + "' but vehicle teleport is disabled");
@@ -455,7 +478,8 @@ modded class PlayerBase
             // Teleport player only
             SetPosition(targetPos);
             // Teleport successful
-            SendTeleportResponse(sender, true, "Teleported to " + location.Name);
+            // Severity 0 = Success (Green)
+            SendTeleportResponse(sender, true, "Teleported to " + location.Name, 0);
 #ifdef SERVER
             VIPTeleportLogger.Log("[Teleport] Player '" + sender.GetName() + "' (" + sender.GetPlainId() + ") teleported from " + currentPos.ToString() + " to '" + location.Name + "' at " + targetPos.ToString());
 #endif
@@ -465,7 +489,7 @@ modded class PlayerBase
         }
     }
 
-    void SendTeleportResponse(PlayerIdentity identity, bool success, string message)
+    void SendTeleportResponse(PlayerIdentity identity, bool success, string message, int severity = 0)
     {
         if (!identity)
             return;
@@ -473,6 +497,7 @@ modded class PlayerBase
         ScriptRPC rpc = new ScriptRPC();
         rpc.Write(success);
         rpc.Write(message);
+        rpc.Write(severity);
         rpc.Send(this, RPC_VIP_TELEPORT_RESPONSE, true, identity);
     }
 
@@ -480,13 +505,16 @@ modded class PlayerBase
     {
         bool success;
         string message;
+        int severity;
 
         if (!ctx.Read(success))
             return;
         if (!ctx.Read(message))
             return;
+        if (!ctx.Read(severity))
+            severity = 0; // Default to 0 if not present
 
         // Show result using helper class
-        VIPTeleportFunctions.ShowResult(success, message);
+        VIPTeleportFunctions.ShowResult(success, message, severity);
     }
 }

@@ -1,0 +1,16 @@
+MetaFileClass {
+ Name "{C8A39D208C4B35CF}VIPTeleport/GUI/icons/notif_icon_warning.edds"
+ Author "rebal"
+ ChangeDate -1360956516
+ Configurations {
+  PNGResourceClass PC {
+   SourceFile "notif_icon_warning.png"
+  }
+  PNGResourceClass XBOX_ONE : PC {
+  }
+  PNGResourceClass PS4 : PC {
+  }
+  PNGResourceClass LINUX : PC {
+  }
+ }
+}

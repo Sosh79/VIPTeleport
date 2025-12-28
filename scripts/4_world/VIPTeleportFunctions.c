@@ -9,6 +9,17 @@ class VIPTeleportFunctions
     // Admin menu pending flag
     static bool m_HasPendingAdminMenu = false;
 
+    // Custom dialog pending flags
+    static bool m_HasPendingDialog = false;
+    static string m_PendingDialogMessage;
+
+    // Custom notification pending flags
+    static bool m_HasPendingNotification = false;
+    static string m_PendingNotifTitle;
+    static string m_PendingNotifMessage;
+    static string m_PendingNotifIcon;
+    static float m_PendingNotifDuration;
+
     // Store menu data to be processed by MissionGameplay
     static void ShowMenu(array<ref VIPTeleportLocation> locations, string menuTitle)
     {
@@ -71,8 +82,50 @@ class VIPTeleportFunctions
         m_HasPendingAdminReloadResult = false;
     }
 
+    // Custom dialog helper functions
+    static void ShowCustomDialog(string message)
+    {
+        m_PendingDialogMessage = message;
+        m_HasPendingDialog = true;
+    }
+
+    static bool HasPendingDialog()
+    {
+        return m_HasPendingDialog;
+    }
+
+    static string GetPendingDialogMessage()
+    {
+        m_HasPendingDialog = false;
+        return m_PendingDialogMessage;
+    }
+
+    // Custom notification helper functions
+    static void AddCustomNotification(string title, string message, string icon, float duration = 5.0)
+    {
+        m_PendingNotifTitle = title;
+        m_PendingNotifMessage = message;
+        m_PendingNotifIcon = icon;
+        m_PendingNotifDuration = duration;
+        m_HasPendingNotification = true;
+    }
+
+    static bool HasPendingNotification()
+    {
+        return m_HasPendingNotification;
+    }
+
+    static void GetPendingNotification(out string title, out string message, out string icon, out float duration)
+    {
+        title = m_PendingNotifTitle;
+        message = m_PendingNotifMessage;
+        icon = m_PendingNotifIcon;
+        duration = m_PendingNotifDuration;
+        m_HasPendingNotification = false;
+    }
+
     // Show teleport result message to player
-    static void ShowResult(bool success, string message)
+    static void ShowResult(bool success, string message, int severity = 0)
     {
         PlayerBase player = PlayerBase.Cast(GetGame().GetPlayer());
         if (player)
@@ -81,16 +134,24 @@ class VIPTeleportFunctions
             GetGame().GetInput().ChangeGameFocus(-1);
             GetGame().GetUIManager().ShowUICursor(false);
 
-            if (success)
+            if (severity == 2)
             {
-                player.MessageStatus(message);
+                // Severity 2 = Critical (Red Popup) - Request custom dialog (via mission layer pickup)
+                ShowCustomDialog(message);
+            }
+            else if (severity == 1)
+            {
+                // Severity 1 = Warning - Use Custom System (via mission layer pickup)
+                AddCustomNotification("VIP TELEPORT WARNING", message, "VIPTeleport/GUI/icons/notif_icon_warning.edds");
             }
             else
             {
-                player.MessageImportant(message);
+                // Severity 0 = Success - Use Custom System (via mission layer pickup)
+                if (success)
+                    AddCustomNotification("VIP TELEPORT SUCCESS", message, "VIPTeleport/GUI/icons/notif_icon_success.edds");
+                else
+                    AddCustomNotification("VIP TELEPORT INFO", message, "VIPTeleport/GUI/icons/notif_icon_info.edds");
             }
-
-            Print("[VIPTeleport] ShowResult - Camera control restored after teleport");
         }
     }
 }

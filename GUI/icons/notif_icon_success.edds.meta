@@ -1,0 +1,16 @@
+MetaFileClass {
+ Name "{D5DFDB3892E48AF2}VIPTeleport/GUI/icons/notif_icon_success.edds"
+ Author "rebal"
+ ChangeDate -1629391972
+ Configurations {
+  PNGResourceClass PC {
+   SourceFile "notif_icon_success.png"
+  }
+  PNGResourceClass XBOX_ONE : PC {
+  }
+  PNGResourceClass PS4 : PC {
+  }
+  PNGResourceClass LINUX : PC {
+  }
+ }
+}
