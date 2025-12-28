@@ -7,8 +7,8 @@ class VIPTeleportMenu : UIScriptedMenu
     
     protected TextWidget m_Title;
     protected TextListboxWidget m_LocationList;
-    protected MultilineTextWidget m_Description;
-    protected ButtonWidget m_RefreshButton;
+    protected ButtonWidget m_TeleportButton;
+    protected ButtonWidget m_CloseButton;
     protected int m_SelectedIndex = -1;
     protected ref array<ref VIPTeleportLocation> m_Locations;
     protected string m_PendingMenuTitle;
@@ -36,7 +36,9 @@ class VIPTeleportMenu : UIScriptedMenu
 
         m_Title = TextWidget.Cast(layoutRoot.FindAnyWidget("Title"));
         m_LocationList = TextListboxWidget.Cast(layoutRoot.FindAnyWidget("LocationList"));
-        m_Description = MultilineTextWidget.Cast(layoutRoot.FindAnyWidget("Description"));
+        
+        m_TeleportButton = ButtonWidget.Cast(layoutRoot.FindAnyWidget("TeleportButton"));
+        m_CloseButton = ButtonWidget.Cast(layoutRoot.FindAnyWidget("CloseButton"));
 
         // Make sure the root widget is visible
         if (layoutRoot)
@@ -256,6 +258,24 @@ class VIPTeleportMenu : UIScriptedMenu
         {
             Print("[VIPTeleport] Double-click on location list");
             OnTeleportClicked();
+            return true;
+        }
+
+        return false;
+    }
+
+    override bool OnClick(Widget w, int x, int y, int button)
+    {
+        super.OnClick(w, x, y, button);
+
+        if (w == m_TeleportButton)
+        {
+            OnTeleportClicked();
+            return true;
+        }
+        else if (w == m_CloseButton)
+        {
+            Close();
             return true;
         }
 

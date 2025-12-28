@@ -11,8 +11,8 @@ FrameWidgetClass VIPTeleportMenuRoot {
  {
   PanelWidgetClass Background {
    visible 1
-   ignorepointer 0
-   color 0 0 0 0.702
+   ignorepointer 1
+   color 0 0 0 0.8
    position 0 0
    size 1 1
    halign center_ref
@@ -23,88 +23,119 @@ FrameWidgetClass VIPTeleportMenuRoot {
    vexactsize 0
    style blank
    {
-    PanelWidgetClass Content {
+    PanelWidgetClass MainPanel {
      visible 1
      clipchildren 1
      inheritalpha 0
      ignorepointer 0
-     ignoregloballv 0
-     keepsafezone 0
-     color 0 0 0 0.4745
-     size 0.25228 0.7917
-     halign right_ref
-     hexactpos 0
-     vexactpos 0
-     hexactsize 0
-     vexactsize 0
-     scaled 1
-     draggable 0
+     color 0.1176 0.1176 0.1176 0.98
+     position 0 0
+     size 450 600
+     halign center_ref
+     valign center_ref
+     hexactpos 1
+     vexactpos 1
+     hexactsize 1
+     vexactsize 1
      style ToolbarWidget
-     "no focus" 0
      {
-      TextWidgetClass Title {
+      PanelWidgetClass Header {
        visible 1
-       position -0.00033 0.02282
-       size 1.02402 0.0712
-       style Normal
-       text "VIP Teleport Menu"
-       font "gui/fonts/etelkatextpro16"
-       "text halign" center
-       "text valign" center
-      }
-      PanelWidgetClass LocationListPanel {
-       visible 1
-       position 0.05 0.11409
-       size 0.9 0.75355
-       hexactpos 0
-       vexactpos 0
+       ignorepointer 1
+       color 0.8235 0.6118 0.1176 1
+       position 0 0
+       size 1 50
+       hexactpos 1
+       vexactpos 1
        hexactsize 0
-       vexactsize 0
+       vexactsize 1
+       style rover_sim_colorable
+       {
+        TextWidgetClass Title {
+         visible 1
+         ignorepointer 1
+         position 0 0
+         size 1 1
+         text "VIP TELEPORT"
+         font "gui/fonts/metron-bold22"
+         "text halign" center
+         "text valign" center
+        }
+       }
+      }
+      PanelWidgetClass Body {
+       visible 1
+       position 0 60
+       size 0.9 420
+       halign center_ref
+       hexactpos 1
+       vexactpos 1
+       hexactsize 0
+       vexactsize 1
        style blank
        {
         TextListboxWidgetClass LocationList {
          visible 1
-         inheritalpha 0
-         color 0 0 0 0.2745
+         color 1 1 1 0.1
          position 0 0
          size 1 1
-         hexactpos 0
-         vexactpos 0
-         hexactsize 0
-         vexactsize 0
-         scaled 1
-         draggable 0
          style Editor
-         "no focus" 0
-         "next left" ""
          "title visible" 0
          colums ""
          font "gui/fonts/metron16"
         }
        }
       }
-      PanelWidgetClass DescriptionPanel {
+      PanelWidgetClass Footer {
        visible 1
-       position 0.04578 0.88885
-       size 0.89838 0.07735
-       hexactpos 0
-       vexactpos 0
+       position 0 15
+       size 0.9 90
+       halign center_ref
+       valign bottom_ref
+       hexactpos 1
+       vexactpos 1
        hexactsize 0
-       vexactsize 0
+       vexactsize 1
+       style blank
        {
-        MultilineTextWidgetClass Description {
+        ButtonWidgetClass TeleportButton {
          visible 1
-         position 0.0208 0.0783
-         size 0.9789 0.8028
-         hexactpos 0
-         vexactpos 0
-         hexactsize 0
-         vexactsize 0
-         style DayZBold
-         text "Select a location to teleport"
-         font "gui/fonts/etelkatextpro58"
-         "text halign" left
-         "text valign" top
+         color 0.8235 0.6118 0.1176 1
+         position 0 0
+         size 1 0.45
+         style Colorable
+         {
+          TextWidgetClass TeleportBtnText {
+           visible 1
+           ignorepointer 1
+           size 1 1
+           text "TELEPORT"
+           font "gui/fonts/metron-bold16"
+           "text halign" center
+           "text valign" center
+          }
+         }
+        }
+        ButtonWidgetClass CloseButton {
+         visible 1
+         color 0.8 0.2 0.2 1
+         size 0.3 0.35
+         halign center_ref
+         valign bottom_ref
+         hexactpos 1
+         vexactpos 1
+         style Colorable
+         {
+          TextWidgetClass CloseBtnText {
+           visible 1
+           ignorepointer 1
+           size 1 1
+           text "CLOSE"
+           font "gui/fonts/metron14"
+           "text halign" center
+           "text valign" center
+          }
+         }
         }
        }
       }

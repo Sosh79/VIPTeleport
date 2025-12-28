@@ -17,6 +17,23 @@ class VIPTeleportLocation
     }
 }
 
+// Restricted "Teleport FROM" zone definition
+class VIPTeleportRestrictedZone
+{
+    string Name;
+    vector Center;
+    float Radius;
+    string Message;
+
+    void VIPTeleportRestrictedZone(string name, vector center, float radius, string message)
+    {
+        Name = name;
+        Center = center;
+        Radius = radius;
+        Message = message;
+    }
+}
+
 // Single menu configuration
 class VIPTeleportMenuConfig
 {
@@ -44,13 +61,16 @@ class VIPTeleportConfig
     static const string CONFIG_FOLDER = "$profile:" + MOD_AUTHOR + "/VIPTeleport/";
     static const string CONFIG_NAME = "VIPTeleportLocations.json";
     static const string ADMIN_CONFIG_NAME = "VIPTeleportAdmins.json";
+    static const string RESTRICTED_CONFIG_NAME = "VIPTeleportRestrictedZones.json";
     static string CONFIG_PATH = CONFIG_FOLDER + CONFIG_NAME;
     static string ADMIN_CONFIG_PATH = CONFIG_FOLDER + ADMIN_CONFIG_NAME;
+    static string RESTRICTED_CONFIG_PATH = CONFIG_FOLDER + RESTRICTED_CONFIG_NAME;
     static const string CURRENT_VERSION = "2.0.5";
 
     static string m_ConfigVersion = "";
     static ref array<ref VIPTeleportMenuConfig> m_Menus = new array<ref VIPTeleportMenuConfig>;
     static ref array<string> m_AdminSteamIDs = new array<string>;
+    static ref array<ref VIPTeleportRestrictedZone> m_RestrictedZones = new array<ref VIPTeleportRestrictedZone>;
     
     // Cooldown settings (loaded from JSON)
     static int m_CooldownSeconds = 30;              // Default: 30 seconds
@@ -67,6 +87,7 @@ class VIPTeleportConfig
 #endif
         LoadAdminConfig();
         LoadMenuConfig();
+        LoadRestrictedZones();
     }
 
     static void LoadAdminConfig()
@@ -443,6 +464,55 @@ class VIPTeleportConfig
         }
         return "VIP Teleport";
     }
+
+    static void LoadRestrictedZones()
+    {
+        Print("[VIPTeleport] Loading restricted zones...");
+
+        if (FileExist(RESTRICTED_CONFIG_PATH))
+        {
+            VIPTeleportRestrictedConfigData restData = new VIPTeleportRestrictedConfigData();
+            JsonFileLoader<VIPTeleportRestrictedConfigData>.JsonLoadFile(RESTRICTED_CONFIG_PATH, restData);
+
+            if (restData && restData.RestrictedZones)
+            {
+                m_RestrictedZones.Clear();
+                foreach (VIPTeleportRestrictedZoneData zoneData : restData.RestrictedZones)
+                {
+                    vector center = Vector(zoneData.Center[0], zoneData.Center[1], zoneData.Center[2]);
+                    m_RestrictedZones.Insert(new VIPTeleportRestrictedZone(zoneData.Name, center, zoneData.Radius, zoneData.Message));
+                }
+                Print("[VIPTeleport] Loaded " + m_RestrictedZones.Count() + " restricted zones");
+            }
+        }
+        else
+        {
+            Print("[VIPTeleport] Restricted zones config not found, creating default");
+            CreateDefaultRestrictedZones();
+        }
+    }
+
+    static void CreateDefaultRestrictedZones()
+    {
+        VIPTeleportRestrictedConfigData restData = new VIPTeleportRestrictedConfigData();
+        restData.RestrictedZones = new array<ref VIPTeleportRestrictedZoneData>;
+
+        VIPTeleportRestrictedZoneData zone1 = new VIPTeleportRestrictedZoneData();
+        zone1.Name = "Prison Island";
+        zone1.Center = {2633, 0, 1318}; // Approximate prison island center
+        zone1.Radius = 300;
+        zone1.Message = "You cannot teleport from Prison Island! Escape first.";
+        restData.RestrictedZones.Insert(zone1);
+
+        JsonFileLoader<VIPTeleportRestrictedConfigData>.JsonSaveFile(RESTRICTED_CONFIG_PATH, restData);
+
+        // Load into memory
+        m_RestrictedZones.Clear();
+        vector center = Vector(zone1.Center[0], zone1.Center[1], zone1.Center[2]);
+        m_RestrictedZones.Insert(new VIPTeleportRestrictedZone(zone1.Name, center, zone1.Radius, zone1.Message));
+
+        Print("[VIPTeleport] Created default restricted zones config");
+    }
 }
 
 // Helper classes for JSON serialization
@@ -492,6 +562,30 @@ class VIPTeleportConfigData
     void VIPTeleportConfigData()
     {
         Menus = new array<ref VIPTeleportMenuData>;
+    }
+}
+
+// Restricted zones configuration data classes
+class VIPTeleportRestrictedZoneData
+{
+    string Name;
+    ref array<float> Center;
+    float Radius;
+    string Message;
+
+    void VIPTeleportRestrictedZoneData()
+    {
+        Center = new array<float>;
+    }
+}
+
+class VIPTeleportRestrictedConfigData
+{
+    ref array<ref VIPTeleportRestrictedZoneData> RestrictedZones;
+
+    void VIPTeleportRestrictedConfigData()
+    {
+        RestrictedZones = new array<ref VIPTeleportRestrictedZoneData>;
     }
 }
 

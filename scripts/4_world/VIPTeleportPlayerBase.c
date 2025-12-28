@@ -317,9 +317,26 @@ modded class PlayerBase
         Print("[VIPTeleport] === TELEPORT REQUEST START ===");
         Print("[VIPTeleport] Player: " + sender.GetName() + " (" + steamId + ")");
         
-        // ADMIN BYPASS: Admins skip cooldown check
+        // ADMIN BYPASS: Admins skip cooldown and restricted zone checks
         bool isAdmin = VIPTeleportConfig.IsAdmin(steamId);
+        vector currentPos = this.GetPosition();
         
+        // SECURITY: Check Restricted "Teleport FROM" Zones
+        if (!isAdmin)
+        {
+            foreach (VIPTeleportRestrictedZone zone : VIPTeleportConfig.m_RestrictedZones)
+            {
+                if (vector.Distance(currentPos, zone.Center) <= zone.Radius)
+                {
+                    SendTeleportResponse(sender, false, zone.Message);
+#ifdef SERVER
+                    VIPTeleportLogger.Log("[Restricted] Blocked teleport for '" + sender.GetName() + "' (" + steamId + ") from " + zone.Name);
+#endif
+                    return;
+                }
+            }
+        }
+
         // SECURITY: Check cooldown first to prevent spam/abuse (skip for admins)
         if (!isAdmin)
         {
@@ -398,8 +415,6 @@ modded class PlayerBase
             targetPos[1] = GetGame().SurfaceRoadY(targetPos[0], targetPos[2]);
         }
 
-        // Get current position for logging before teleport
-        vector currentPos = GetPosition();
         
         // Check if player is in vehicle
         Transport vehicle = null;
